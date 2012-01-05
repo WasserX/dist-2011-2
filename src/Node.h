@@ -17,6 +17,7 @@ class Node {
 		Node();
 		~Node();	
 		inline void updateDependencies(Node* node) { dependencies.remove(node); };
+		inline void updateTerminals(string terminal) { terminals.push_back(terminal); };
 		inline bool isReady() { return dependencies.empty(); };
 		
 };
