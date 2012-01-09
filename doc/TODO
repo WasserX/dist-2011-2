@@ -1,0 +1,33 @@
+Classes:
+	Master
+		+sendTask() //Calls nextNode(); Adds Node to computing, adds files[] to filesInResource, removes from readyToBeComputed and sendData()
+		+sendData() //Sends various messages to the resource
+			//sendMsg(char[] command, size);
+			//sendMsg(int fileCount);
+			//sendMsg(char[] file, size);
+			//sendMsg(File);			
+		+receiveCompleted() // rcvData(), removes from computing, marks node as finished, tells solves[] that is completed and updates readyToBeComputed.
+		+rcvData() //MPI CALL that receives the id and the file from the resource
+		+pair<Node*, filesToSend[]> nextNode(int id[AvailableComputer]) //Receives an available computer and returns the next one to compute
+		+execute() //LOOP:
+				//IF ready[].empty() and availableResources[].full() --> Finishes,
+				//IF availableResources[].empty() --> receiveCompleted(), //CAUTION A TASK NEEDS TO HAVE BEEN SEND BEFORE ENTERING THE RECEIVE OR DEADLOCK
+				//IF !ready[].empty() and !availableResources[].empty() --> sendTask();
+
+		-const vector<Node*> graph;
+		-vector<Node*> readyToBeComputed
+		-map<int, Node*> computing //Who is computing and what
+		-vector<int> availableResources //IDs
+		-map<int, list<string>> filesInResource //For each resource a list of files available
+
+	Slave
+		+sendFinished() //Pair to receiveCompleted(); Send the file that has been computed
+		+receiveTask() 	//Pair to sendTask() --> Receives files and a command
+			//rcvMsg(char[] command, size);
+			//rcvMsg(int fileCount);
+			//rcvMsg(char[] file, size) || rcvMsg(End);
+			//rcvMsg(File);
+Functions:
+	Main
+		Tests if the id is from the master or the slaves, creates an object accordingly and executes THE method.
+		When the method finishes, stops MPI and quits (If the master, say goodbye)
