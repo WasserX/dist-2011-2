@@ -2,7 +2,7 @@
 
 Node::Node() {
 	nodeName = "";
-	isRule = false;
+	rule = false;
 	hasFinished = false;
 }
 
@@ -13,7 +13,7 @@ void Node::toString(){
 	using namespace std;
 
 	cout << "Node: " << nodeName << endl;
-	cout << "Is a Rule? " << isRule << endl;
+	cout << "Is a Rule? " << rule << endl;
 	cout << "Has Finished? " << hasFinished << endl;
 	cout << "Command: " << command << endl;
 

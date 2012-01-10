@@ -8,9 +8,9 @@
 class Node {
 public:
 	Node();
-	inline Node(std::string ruleName) { nodeName = ruleName; isRule = false; hasFinished = false; };
+	inline Node(std::string ruleName) { nodeName = ruleName; rule = false; hasFinished = false; };
 	~Node();
-	inline void setRule(bool value) { isRule = value; };
+	inline void setRule(bool value) { rule = value; };
 	inline void setFinished(bool value) { hasFinished = value; };
 	inline void setCommand(std::string com) { command = com; };
 	inline void addDependency(Node* dep) { dependencies.push_back(dep); };
@@ -22,12 +22,13 @@ public:
 	inline std::string getCommand() { return command; };
 	inline void updateDependencies(Node* node) { dependencies.remove(node); };
 	inline bool isFinished() { return hasFinished; };
+	inline bool isRule() { return rule; };
 	inline bool isReady() { return dependencies.empty(); };
 	void toString();
 
 private:
 	bool hasFinished;
-	bool isRule;
+	bool rule;
 	std::string nodeName;
 	std::list<Node*> dependencies;
 	std::list<Node*> solves;
