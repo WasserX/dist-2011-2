@@ -1,0 +1,4 @@
+A distributed (simplified) Make implementation for the Distributed Systems Course 2011/2
+Doesn't depend on NFS, process communication using MPI.
+
+There is a master process (modeled after the Master class) and others that execute tasks (modeled after Slave)
