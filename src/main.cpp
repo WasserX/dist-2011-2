@@ -79,3 +79,7 @@ bool checkIfDepUpToDate(string ruleName, list<string> depNames){
 	}
 	return true;
 }
+
+int main() {
+	return 0;
+}
