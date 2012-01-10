@@ -56,8 +56,11 @@ vector<Node*> parseFile(string fileName) {
 		input.close();
 	}
 
-	for(map<string,Node*>::iterator it = nodeMap.begin(); it != nodeMap.end(); it++)
+	for(map<string,Node*>::iterator it = nodeMap.begin(); it != nodeMap.end(); it++) {
+		if(!it->second->isRule())
+			it->second->setFinished(true);
 		graph.push_back(it->second);
+	}
 
 	return graph;
 }
