@@ -16,6 +16,7 @@ public:
 	inline void addDependency(Node* dep) { dependencies.push_back(dep); };
 	inline void addResolves(Node* dep) { solves.push_back(dep); };
 	inline void addTerminal(std::string terminal) { terminals.push_back(terminal); };
+	inline std::list<Node*> getResolves() { return solves; };
 	inline std::list<Node*> getDependencies() { return dependencies; };
 	inline std::list<std::string> getTerminals() { return terminals; };
 	inline std::string getNodeName() { return nodeName; };

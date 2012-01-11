@@ -41,13 +41,9 @@ vector<Node*> parseFile(string fileName) {
 			//Dependencies
 			istringstream iss(line.substr(found+1));
 			while( iss >> aDep){
-				aNode->addTerminal(aDep);
 				aNode->addDependency(nodeMap.insert(pair<string,Node*>(aDep,new Node(aDep))).first->second);
 				nodeMap.find(aDep)->second->addResolves(aNode);
 			}
-			//Check if updated
-			if(checkIfDepUpToDate(aNode->getNodeName(), aNode->getTerminals()))
-				aNode->setFinished(true);
 			//Copy rule
 			getline(input, line);
 			aNode->setCommand(line);
@@ -56,12 +52,22 @@ vector<Node*> parseFile(string fileName) {
 		input.close();
 	}
 
+	list<Node*> resolves;
 	for(map<string,Node*>::iterator it = nodeMap.begin(); it != nodeMap.end(); it++) {
-		if(!it->second->isRule())
-			it->second->setFinished(true);
+		aNode = it->second;
+		resolves = aNode->getResolves();
+		//If it's a terminal update
+		if(!aNode->isRule()){
+			for(list<Node*>::iterator it = resolves.begin(); it != resolves.end(); it++)
+				(*it)->addTerminal(aNode->getNodeName());
+		}
 		graph.push_back(it->second);
 	}
-
+	//Check if updated (marks terminals as finished too)
+	for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++){
+		if(checkIfDepUpToDate(aNode->getNodeName(), aNode->getTerminals()))
+			aNode->setFinished(true);
+	}
 	return graph;
 }
 
