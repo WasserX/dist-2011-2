@@ -53,20 +53,19 @@ vector<Node*> parseFile(string fileName) {
 	}
 
 	list<Node*> resolves;
-	for(map<string,Node*>::iterator it = nodeMap.begin(); it != nodeMap.end(); it++) {
-		aNode = it->second;
-		resolves = aNode->getResolves();
+	for(map<string,Node*>::iterator itMap = nodeMap.begin(); itMap != nodeMap.end(); itMap++) {
+		resolves = itMap->second->getResolves();
 		//If it's a terminal update
-		if(!aNode->isRule()){
-			for(list<Node*>::iterator it = resolves.begin(); it != resolves.end(); it++)
-				(*it)->addTerminal(aNode->getNodeName());
+		if(!itMap->second->isRule()){
+			for(list<Node*>::iterator itList = resolves.begin(); itList != resolves.end(); itList++)
+				(*itList)->addTerminal(itMap->second->getNodeName());
 		}
-		graph.push_back(it->second);
+		graph.push_back(itMap->second);
 	}
-	//Check if updated (marks terminals as finished too)
+
 	for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++){
-		if(checkIfDepUpToDate(aNode->getNodeName(), aNode->getTerminals()))
-			aNode->setFinished(true);
+		if(checkIfDepUpToDate((*it)->getNodeName(), (*it)->getTerminals()))
+			(*it)->setFinished(true);
 	}
 	return graph;
 }
