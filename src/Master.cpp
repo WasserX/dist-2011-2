@@ -60,7 +60,7 @@ std::list<std::string>& Master::diffLists(std::list<std::string>& base, const st
 	while( itBase != base.end() && itCompare != toCompare.end() ){
 		compareResult = itBase->compare(*itCompare);
 		if(compareResult == 0){
-			base.erase(itBase);
+			itBase = base.erase(itBase);
 			itCompare++;
 		}
 		else if ( compareResult < 0)
