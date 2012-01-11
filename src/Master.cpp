@@ -20,7 +20,53 @@ Master::Master(std::vector<Node*> graph, std::vector<int> resources){
 void Master::updateReadyToCompute(){
 	using namespace std;
 	for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++){
-		if((*it)->isReady())
+		if((*it)->isReady() && !(*it)->isFinished())
 			readyToCompute.push_back(*it);
 	}
+}
+
+std::pair<Node*, std::list<std::string> >& Master::nextNode(int id){
+	using namespace std;
+	list<string> inProcess = filesInResource.find(id)->second;
+	inProcess.sort();
+	list<string> other;
+
+	int bestDistance = INF;
+	Node* selected;
+	for(vector<Node*>::iterator it = readyToCompute.begin(); it != readyToCompute.end(); it++)
+	{
+		other = (*it)->getTerminals();
+		other.sort();
+		other = diffLists(other, inProcess);
+
+		if( other.size() < bestDistance ) {
+			selected = *it;
+			bestDistance = other.size();
+		}
+	}
+
+	other = selected->getTerminals();
+	other.sort();
+	pair<Node*, list<string> > toReturn(selected, diffLists(other, inProcess));
+	return toReturn;
+}
+
+std::list<std::string>& Master::diffLists(std::list<std::string>& base, const std::list<std::string>& toCompare){
+	int compareResult;
+	std::list<std::string>::iterator itBase;
+	std::list<std::string>::const_iterator itCompare;
+
+	itBase = base.begin(); itCompare = toCompare.begin();
+	while( itBase != base.end() && itCompare != toCompare.end() ){
+		compareResult = itBase->compare(itCompare);
+		if(compareResult == 0){
+			base.erase(itBase);
+			itCompare++;
+		}
+		else if ( compareResult < 0)
+			itBase++;
+		else
+			itCompare++;
+	}
+	return base;
 }

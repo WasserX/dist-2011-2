@@ -31,6 +31,11 @@ public:
 
 private:
 	void updateReadyToCompute();
+	std::pair<Node*, std::list<std::string> >& nextNode(int id);
+	//Removes elems that are on both lists from base and returns it. PARAMETERS NEED TO BE SORTED
+	std::list<std::string>& diffLists(std::list<std::string>& base, const std::list<std::string>& toCompare);
+
+	const int INF = 99999;
 
 	std::vector<Node*> graph;
 	std::vector<int> availableResources;
