@@ -25,13 +25,13 @@ void Master::updateReadyToCompute(){
 	}
 }
 
-std::pair<Node*, std::list<std::string> >& Master::nextNode(int id){
+std::pair<Node*, std::list<std::string> > Master::nextNode(int id){
 	using namespace std;
 	list<string> inProcess = filesInResource.find(id)->second;
 	inProcess.sort();
 	list<string> other;
 
-	int bestDistance = INF;
+	unsigned int bestDistance = INF;
 	Node* selected;
 	for(vector<Node*>::iterator it = readyToCompute.begin(); it != readyToCompute.end(); it++)
 	{
@@ -58,7 +58,7 @@ std::list<std::string>& Master::diffLists(std::list<std::string>& base, const st
 
 	itBase = base.begin(); itCompare = toCompare.begin();
 	while( itBase != base.end() && itCompare != toCompare.end() ){
-		compareResult = itBase->compare(itCompare);
+		compareResult = itBase->compare(*itCompare);
 		if(compareResult == 0){
 			base.erase(itBase);
 			itCompare++;
