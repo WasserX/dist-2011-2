@@ -9,13 +9,14 @@
 #define SLAVE_H_
 
 #include <mpi.h>
+#include "Master.h"
 
 class Slave {
 private:
 	char command[1000];
 	int fileCount;
 	char fileNames[][50];
-    MPI_Status status;
+  MPI_Status status;
 	int intBuffer[1];
 
 public:

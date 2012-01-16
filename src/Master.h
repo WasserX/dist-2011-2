@@ -21,6 +21,16 @@ public:
 		for(std::vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++)
 			delete *it;
 	}
+	void execute();
+	
+	//Constants
+	const static int ID = 0;
+	const static int COMMAND_SIZE = 1000;
+	const static int FILE_NAME_SIZE = 50;
+	const static int COMMAND_TAG = 100;
+	const static int FILE_NAME_TAG = 101;
+	const static int FILE_QUANT_TAG = 102;
+	const static int RESPONSE_TAG = 200;
 
 	//Getters and Setters
 	inline std::vector<Node*> getGraph() { return graph; };

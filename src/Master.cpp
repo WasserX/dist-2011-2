@@ -17,6 +17,19 @@ Master::Master(std::vector<Node*> graph, std::vector<int> resources){
 	updateReadyToCompute();
 }
 
+void Master::execute(){
+	using namespace std;
+	bool finish = false;
+	while(!finish){
+		if ( !readyToCompute.empty() && computing.size() != availableResources.size() )
+			;//sendTask();
+		else if ( !computing.empty() )
+			;//receiveTaskS();
+		else if ( readyToCompute.empty() && computing.empty() )
+			finish = true;
+	}
+}
+
 void Master::updateReadyToCompute(){
 	using namespace std;
 	for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++){
