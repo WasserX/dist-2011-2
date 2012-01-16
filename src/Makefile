@@ -2,14 +2,14 @@ CC = g++
 MPICC = mpicxx
 CFLAGS = -Wall
 LFLAGS =
-OBJS = Node.o Master.o
+OBJS = Node.o Master.o Slave.o
 OUTPUT = distMake
 
 $(OUTPUT): main.cpp $(OBJS)
-	$(CC) $^ -o $@ $(CFLAGS) $(LFLAGS)
+	$(MPICC) $^ -o $@ $(CFLAGS) $(LFLAGS)
 
 %.o: %.cpp %.h
-	$(CC) -c $< -o $@ $(CFLAGS)
+	$(MPICC) -c $< -o $@ $(CFLAGS)
 
 clean:
 	rm $(OUTPUT) $(OBJS)
