@@ -12,4 +12,4 @@ $(OUTPUT): main.cpp $(OBJS)
 	$(MPICC) -c $< -o $@ $(CFLAGS)
 
 clean:
-	rm $(OUTPUT) $(OBJS)
+	rm -rf $(OUTPUT) $(OBJS)
