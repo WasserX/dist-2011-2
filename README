@@ -2,3 +2,7 @@ A distributed (simplified) Make implementation for the Distributed Systems Cours
 Doesn't depend on NFS, process communication using MPI.
 
 There is a master process (modeled after the Master class) and others that execute tasks (modeled after Slave)
+
+Prerequisites:
+1. OpenMPI and libraries for compiling. In ubuntu:
+	sudo apt-get install openmpi-dev openmpi-bin
