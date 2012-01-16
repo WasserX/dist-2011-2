@@ -11,7 +11,7 @@ Master::Master(std::vector<Node*> graph, std::list<int> resources){
 	using namespace std;
 	this->graph = graph;
 	availableResources = resources;
-	totalResources = resources.size();
+	this->resources = resources;
 	for(list<int>::iterator it = availableResources.begin(); it != availableResources.end(); it++)
 		filesInResource.insert(pair<int, list<string> >(*it, list<string>()));
 
@@ -22,7 +22,7 @@ void Master::execute(){
 	using namespace std;
 	
 	do {
-		if ( !readyToCompute.empty() && computing.size() != totalResources ) {
+		if ( !readyToCompute.empty() && !availableResources.empty() ) {
 			sendTask(nextNode(availableResources.front()), availableResources.front());
 		}
 		else if ( !computing.empty() )
@@ -70,6 +70,8 @@ std::pair<Node*, std::list<std::string> > Master::nextNode(int id){
 	Node* selected;
 	for(vector<Node*>::iterator it = readyToCompute.begin(); it != readyToCompute.end(); it++)
 	{
+		if ((*it)->isFinished()) //This eliminates the terminals that are always ready
+			continue;
 		other = (*it)->getTerminals();
 		other.sort();
 		other = diffLists(other, inProcess);
