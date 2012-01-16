@@ -11,6 +11,7 @@ Master::Master(std::vector<Node*> graph, std::list<int> resources){
 	using namespace std;
 	this->graph = graph;
 	availableResources = resources;
+	totalResources = resources.size();
 	for(list<int>::iterator it = availableResources.begin(); it != availableResources.end(); it++)
 		filesInResource.insert(pair<int, list<string> >(*it, list<string>()));
 
@@ -21,7 +22,7 @@ void Master::execute(){
 	using namespace std;
 	
 	do {
-		if ( !readyToCompute.empty() && computing.size() != availableResources.size() ) {
+		if ( !readyToCompute.empty() && computing.size() != totalResources ) {
 			sendTask(nextNode(availableResources.front()), availableResources.front());
 		}
 		else if ( !computing.empty() )
