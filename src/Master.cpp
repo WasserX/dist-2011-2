@@ -96,8 +96,12 @@ void Master::receiveFinished() {
 				files.push_back(cleanWhiteSpaces(file));
 			
 			list<Node*> depended = mapIt->second->getResolves();
-			for(list<Node*>::iterator it = depended.begin(); it != depended.end(); it++)
+			list<string>::iterator termBeginIt;
+			for(list<Node*>::iterator it = depended.begin(); it != depended.end(); it++){
 				(*it)->remDependency();
+				for(list<string>::iterator itFile = files.begin(); itFile != files.end(); itFile++)
+					(*it)->addTerminal(*itFile);
+			}
 			
 			//Updating the lists it belongs
 			computing.erase(ptRequest->first);
