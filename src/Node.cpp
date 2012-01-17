@@ -4,6 +4,7 @@ Node::Node() {
 	nodeName = "";
 	rule = false;
 	hasFinished = false;
+	dependencies = 0;
 }
 
 Node::~Node() {
@@ -17,10 +18,7 @@ void Node::toString(){
 	cout << "Has Finished? " << hasFinished << endl;
 	cout << "Command: " << command << endl;
 
-	cout << "Dependencies: ";
-	for(list<Node*>::iterator it = dependencies.begin(); it != dependencies.end(); it++)
-		cout << (*it)->getNodeName() << " ";
-	cout << endl;
+	cout << "Dependencies: " << dependencies << endl;
 
 	cout << "Solves: ";
 	for(list<Node*>::iterator it = solves.begin(); it != solves.end(); it++)

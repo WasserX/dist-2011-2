@@ -28,7 +28,7 @@ vector<Node*> parseFile(string fileName) {
 			while( iss >> aDep){
 				aDep = cleanWhiteSpaces(aDep);
 				retInsert = nodeMap.insert(pair<string,Node*>(aDep,new Node(aDep)));
-				aNode->addDependency(retInsert.first->second);
+				aNode->addDependency();
 				retInsert.first->second->addResolves(aNode);
 			}
 			//Copy rule
@@ -44,8 +44,10 @@ vector<Node*> parseFile(string fileName) {
 		resolves = itMap->second->getResolves();
 		//If it's a terminal update
 		if(!itMap->second->isRule()){
-			for(list<Node*>::iterator itList = resolves.begin(); itList != resolves.end(); itList++)
+			for(list<Node*>::iterator itList = resolves.begin(); itList != resolves.end(); itList++){ 
 				(*itList)->addTerminal(itMap->second->getNodeName());
+				(*itList)->remDependency();
+			}
 		}
 		graph.push_back(itMap->second);
 	}
