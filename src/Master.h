@@ -14,6 +14,7 @@
 #include <mpi.h>
 #include <string.h>
 #include "Node.h"
+#include "utils.h"
 
 
 class Master {
@@ -32,14 +33,13 @@ public:
 	const static int COMMAND_TAG = 100;
 	const static int FILE_NAME_TAG = 101;
 	const static int FILE_QUANT_TAG = 102;
-	const static int RESPONSE_TAG = 200;
+	const static int RESPONSE_FILE_LIST_TAG = 200;
 
 private:
 	void updateReadyToCompute();
 	void sendTask(std::pair<Node*, std::list<std::string> > input, int target);
+	void receiveFinished();
 	std::pair<Node*, std::list<std::string> > nextNode(int id);
-	//Removes elems that are on both lists from base and returns it. PARAMETERS NEED TO BE SORTED
-	std::list<std::string>& diffLists(std::list<std::string>& base, const std::list<std::string>& toCompare);
 
 	const static int INF = 99999;
 
@@ -49,6 +49,8 @@ private:
 	std::vector<Node*> readyToCompute;
 	std::list<int> availableResources;
 	std::map<int, Node*> computing; //Who is computing and what
+	std::map<int, MPI_Request*> requests;
+	std::map<int, char*> rcvBuffers;
 };
 
 #endif /* MASTER_H_ */

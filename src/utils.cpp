@@ -84,6 +84,31 @@ bool checkIfDepUpToDate(string ruleName, list<string> depNames){
 	return true;
 }
 
+
+/*
+Returns the elements from base that are no present in toCompare.
+Elements need to be ordered
+*/
+std::list<std::string>& diffLists(std::list<std::string>& base, const std::list<std::string>& toCompare){
+	int compareResult;
+	std::list<std::string>::iterator itBase;
+	std::list<std::string>::const_iterator itCompare;
+
+	itBase = base.begin(); itCompare = toCompare.begin();
+	while( itBase != base.end() && itCompare != toCompare.end() ){
+		compareResult = itBase->compare(*itCompare);
+		if(compareResult == 0){
+			itBase = base.erase(itBase);
+			itCompare++;
+		}
+		else if ( compareResult < 0)
+			itBase++;
+		else
+			itCompare++;
+	}
+	return base;
+}
+
 std::list<std::string> getFilesInDir(std::string dir){
 	using namespace std;
 	list<string> files;

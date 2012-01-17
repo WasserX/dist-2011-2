@@ -25,7 +25,7 @@ void Master::execute(){
 			sendTask(nextNode(availableResources.front()), availableResources.front());
 		}
 		else if ( !computing.empty() )
-				;//receiveTaskS();
+			receiveFinished();
 	} while( !readyToCompute.empty() && !computing.empty() );
 }
 
@@ -57,6 +57,58 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	computing.insert(std::pair<int, Node*>(target, input.first));
 	//Remove from available
 	availableResources.pop_front();
+	//Waits first part of answer async
+	map<int, MPI_Request*>::iterator ptRequests = requests.find(target);
+	if( ptRequests == requests.end() )
+		ptRequests = requests.insert(pair<int, MPI_Request*>(target, new MPI_Request())).first;
+	
+	map<int, char*>::iterator ptBuffers = rcvBuffers.find(target);
+	if( ptBuffers == rcvBuffers.end() )
+		ptBuffers = rcvBuffers.insert(pair<int, char*>(target,(char*) malloc (FILE_NAME_SIZE))).first;
+	
+	MPI_Irecv(ptBuffers->second, FILE_NAME_SIZE, MPI_BYTE, target, 
+		RESPONSE_FILE_LIST_TAG, MPI_COMM_WORLD, ptRequests->second);
+}
+
+void Master::receiveFinished() {
+	using namespace std;
+
+	map<int, MPI_Request*>::iterator ptRequest;
+	MPI_Status status;
+	int flag = 0;
+	bool once = false;
+		
+	for(map<int, Node*>::iterator mapIt = computing.begin(); mapIt != computing.end(); mapIt++){
+		flag = false;
+		ptRequest = requests.find(mapIt->first);
+		if( ptRequest != requests.end() )
+			MPI_Test(ptRequest->second, &flag, &status);
+		if(flag){
+			cout << "I'm " << ptRequest->first << " Finished doing my tasks, these are the files I created: " 
+			<< rcvBuffers.find(ptRequest->first)->second << endl;
+			//Should get the files
+			
+			//Updating Graph
+			istringstream iss(rcvBuffers.find(ptRequest->first)->second);
+			string file;
+			list<string> files;
+			while( iss >> file)
+				files.push_back(cleanWhiteSpaces(file));
+			
+			list<Node*> depended = mapIt->second->getResolves();
+			for(list<Node*>::iterator it = depended.begin(); it != depended.end(); it++)
+				(*it)->remDependency();
+			
+			//Updating the lists it belongs
+			computing.erase(ptRequest->first);
+			availableResources.push_back(ptRequest->first);
+			
+			once = true;
+			flag= 0;
+		} 
+	}
+	if(once)
+		updateReadyToCompute();
 }
 
 std::pair<Node*, std::list<std::string> > Master::nextNode(int id){
@@ -85,24 +137,4 @@ std::pair<Node*, std::list<std::string> > Master::nextNode(int id){
 	other.sort();
 	pair<Node*, list<string> > toReturn(selected, diffLists(other, inProcess));
 	return toReturn;
-}
-
-std::list<std::string>& Master::diffLists(std::list<std::string>& base, const std::list<std::string>& toCompare){
-	int compareResult;
-	std::list<std::string>::iterator itBase;
-	std::list<std::string>::const_iterator itCompare;
-
-	itBase = base.begin(); itCompare = toCompare.begin();
-	while( itBase != base.end() && itCompare != toCompare.end() ){
-		compareResult = itBase->compare(*itCompare);
-		if(compareResult == 0){
-			itBase = base.erase(itBase);
-			itCompare++;
-		}
-		else if ( compareResult < 0)
-			itBase++;
-		else
-			itCompare++;
-	}
-	return base;
 }
