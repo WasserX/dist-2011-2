@@ -83,3 +83,19 @@ bool checkIfDepUpToDate(string ruleName, list<string> depNames){
 	}
 	return true;
 }
+
+std::list<std::string> getFilesInDir(std::string dir){
+	using namespace std;
+	list<string> files;
+	DIR *dp;
+	struct dirent *ep;
+	
+	dp = opendir(dir.c_str());
+	if( dp != NULL ){
+		while ( (ep = readdir(dp)) )
+			if( ep->d_type == DT_REG ) //If its a regular file
+				files.push_back(string(ep->d_name));
+		closedir( dp );
+	}
+	return files;
+}
