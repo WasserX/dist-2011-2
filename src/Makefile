@@ -2,7 +2,7 @@ CC = g++
 MPICC = mpicxx
 CFLAGS = -Wall
 LFLAGS =
-OBJS = Node.o Master.o Slave.o
+OBJS = Node.o Master.o Slave.o utils.o
 OUTPUT = distMake
 
 $(OUTPUT): main.cpp $(OBJS)
