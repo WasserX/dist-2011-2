@@ -20,7 +20,6 @@ Master::Master(std::vector<Node*> graph, std::list<int> resources){
 
 void Master::execute(){
 	using namespace std;
-	
 	do {
 		if ( !readyToCompute.empty() && !availableResources.empty() ) {
 			sendTask(nextNode(availableResources.front()), availableResources.front());
@@ -39,21 +38,21 @@ void Master::updateReadyToCompute(){
 }
 
 void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int target) {
+	using namespace std;
+
 	char command[COMMAND_SIZE];
 	strcpy(command, input.first->getCommand().c_str());
 	std::list<std::string> fileNames = input.second;	
 	//Command
 	MPI_Send(command, COMMAND_SIZE, MPI_BYTE, target, COMMAND_TAG, MPI_COMM_WORLD);
-	//File Quantity
-	int fileQuantity[FILE_QUANT_SIZE];
-	fileQuantity[0] = fileNames.size();
-	MPI_Send(fileQuantity, FILE_QUANT_SIZE, MPI_INT, target, FILE_QUANT_TAG, MPI_COMM_WORLD);
 	//File_names
-	char fileName[FILE_NAME_SIZE];
+	string allNames = "";
 	for(std::list<std::string>::iterator it = fileNames.begin(); it != fileNames.end(); it++){
-		strcpy(fileName, it->c_str());
-		MPI_Send(fileName, FILE_NAME_SIZE, MPI_BYTE, target, FILE_NAME_TAG, MPI_COMM_WORLD);
+		allNames.append(*it + " ");
 	}
+	char allFileNames[FILE_NAME_SIZE];
+	strcpy(allFileNames, allNames.substr(0, allNames.size()-1).c_str());
+	MPI_Send(allFileNames, FILE_NAME_SIZE, MPI_BYTE, target, FILE_NAME_TAG, MPI_COMM_WORLD);
 	//Add to computing
 	computing.insert(std::pair<int, Node*>(target, input.first));
 	//Remove from available

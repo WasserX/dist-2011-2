@@ -13,17 +13,15 @@
 
 class Slave {
 private:
-	char command[1000];
-	int fileCount;
-	char fileNames[][50];
-  MPI_Status status;
-	int intBuffer[1];
+	char command[Master::COMMAND_SIZE];
+	char fileNames[Master::FILE_NAME_SIZE];
+  	MPI_Status status;
 
 public:
 	Slave();
 	virtual ~Slave();
-	//void sendFinished(File file);
 	void receiveTask();
+	//void execute();
 };
 
 #endif /* SLAVE_H_ */
