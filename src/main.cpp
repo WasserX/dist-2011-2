@@ -15,9 +15,11 @@
 using namespace std;
 
 bool checkIfDepUpToDate(string ruleName, list<string> depNames);
+string cleanWhiteSpaces(string str);
 
 vector<Node*> parseFile(string fileName) {
 	map<string,Node*> nodeMap;
+	pair<map<string,Node*>::iterator,bool> retInsert;
 	vector<Node*> graph;
 	Node* aNode;
 
@@ -34,15 +36,17 @@ vector<Node*> parseFile(string fileName) {
 			found = line.find_first_of(":");
 			if(found == string::npos)
 				exit(EXIT_FAILURE);
-			string nodeName = line.substr(0,found);
+			string nodeName = cleanWhiteSpaces(line.substr(0,found));
 			map<string, Node*>::iterator it = nodeMap.find(nodeName);
 			aNode = it == nodeMap.end() ? new Node(nodeName) : it->second;
 			aNode->setRule(true);
 			//Dependencies
 			istringstream iss(line.substr(found+1));
 			while( iss >> aDep){
-				aNode->addDependency(nodeMap.insert(pair<string,Node*>(aDep,new Node(aDep))).first->second);
-				nodeMap.find(aDep)->second->addResolves(aNode);
+				aDep = cleanWhiteSpaces(aDep);
+				retInsert = nodeMap.insert(pair<string,Node*>(aDep,new Node(aDep)));
+				aNode->addDependency(retInsert.first->second);
+				retInsert.first->second->addResolves(aNode);
 			}
 			//Copy rule
 			getline(input, line);
@@ -68,6 +72,13 @@ vector<Node*> parseFile(string fileName) {
 			(*it)->setFinished(true);
 	}
 	return graph;
+}
+
+string cleanWhiteSpaces(string str) {
+	unsigned int beg, end;
+	for(beg = 0; beg < str.length() && str[beg] == ' '; beg++);
+	for(end = beg; end < str.length() && str[end] != ' '; end++);
+	return str.substr(beg,end-beg);
 }
 
 bool checkIfDepUpToDate(string ruleName, list<string> depNames){
