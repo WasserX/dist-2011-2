@@ -9,6 +9,7 @@
 #define SLAVE_H_
 
 #include <mpi.h>
+#include <stdlib.h>
 #include "Master.h"
 
 class Slave {

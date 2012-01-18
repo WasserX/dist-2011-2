@@ -26,6 +26,9 @@ void Slave::receiveTask() {
 	MPI_Recv(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, Master::FILE_NAME_TAG, MPI_COMM_WORLD, &status); //file name
 	//MPI_Recv(files[i], 1024, MPI_BYTE, MASTERID, MESSAGETAG, MPI_COMM_WORLD, &status); //file
 
+	//Execute command
+	system(command);
+
 }
 
 /*void Slave::execute() {
