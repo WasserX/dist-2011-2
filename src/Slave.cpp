@@ -8,21 +8,44 @@
 
 #include "Slave.h"
 
+const char* Slave::FILE_CHECKPOINT = "___FILE_CHECKPOINT___";
+
 Slave::Slave(int rank) {
 	id = rank;
+	rank += 48;
 	//Create and change to a new working directory
-	std::string command = "mkdir " + id;
-	command += " && cd " + id;
+	std::string command = " mkdir -p " + (char)rank;
+	command += " && cd " + (char)rank;
 	system(command.c_str());
 }
 
 Slave::~Slave() {
 	//When finished delete the working directory
-	std::string command = string("cd ../ && rm -r " + id);
+	std::string command = string("cd ../ && rm -r " + (char)(id+48));
 	system(command.c_str());
 }
 
 //void sendFinished(File file)
+
+std::list<std::string> Slave::getChangedFiles(){
+	std::list<std::string> fileList;
+	FILE* pipe = popen("ls -t1", "r");
+	if (!pipe)
+		return fileList;
+	
+	char buffer[Master::FILE_NAME_SIZE];
+	std::stringstream ss;
+	std::string output;
+	while(!feof(pipe)) {
+		if(fgets(buffer, Master::FILE_NAME_SIZE, pipe) != NULL)
+			ss << buffer;
+	}
+	pclose(pipe);
+	
+	while(ss >> output && output != FILE_CHECKPOINT)
+		fileList.push_back(output);
+	return fileList;
+}
 
 void Slave::receiveTask() {
 

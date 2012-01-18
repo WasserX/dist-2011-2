@@ -24,6 +24,5 @@ bool checkIfDepUpToDate(string ruleName, list<string> depNames);
 string cleanWhiteSpaces(string str);
 vector<Node*> parseFile(string fileName);
 std::list<std::string>& diffLists(std::list<std::string>& base, const std::list<std::string>& toCompare);
-std::list<std::string> getFilesInDir(std::string dir);
 
 #endif //UTILS_H
