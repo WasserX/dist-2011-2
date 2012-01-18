@@ -8,13 +8,18 @@
 
 #include "Slave.h"
 
-Slave::Slave() {
-	// TODO Auto-generated constructor stub
-
+Slave::Slave(int rank) {
+	id = rank;
+	//Create and change to a new working directory
+	std::string command = "mkdir " + id;
+	command += " && cd " + id;
+	system(command.c_str());
 }
 
 Slave::~Slave() {
-	// TODO Auto-generated destructor stub
+	//When finished delete the working directory
+	std::string command = string("cd ../ && rm -r " + id);
+	system(command.c_str());
 }
 
 //void sendFinished(File file)

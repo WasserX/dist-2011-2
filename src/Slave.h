@@ -10,16 +10,18 @@
 
 #include <mpi.h>
 #include <stdlib.h>
+#include <string>
 #include "Master.h"
 
 class Slave {
 private:
+	int id;
 	char command[Master::COMMAND_SIZE];
 	char fileNames[Master::FILE_NAME_SIZE];
   	MPI_Status status;
 
 public:
-	Slave();
+	Slave(int rank);
 	virtual ~Slave();
 	void receiveTask();
 	//void execute();
