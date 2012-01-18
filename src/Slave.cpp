@@ -12,17 +12,27 @@ const char* Slave::FILE_CHECKPOINT = "___FILE_CHECKPOINT___";
 
 Slave::Slave(int rank) {
 	id = rank;
-	rank += 48;
-	//Create and change to a new working directory
-	std::string command = " mkdir -p " + (char)rank;
-	command += " && cd " + (char)rank;
-	system(command.c_str());
+	changeDir();
 }
 
 Slave::~Slave() {
-	//When finished delete the working directory
-	std::string command = string("cd ../ && rm -r " + (char)(id+48));
-	system(command.c_str());
+	cleanUp();
+}
+
+void Slave::changeDir(){
+	char number[10];
+	sprintf(number,"%d",id);
+	string action = "mkdir -p ";
+	system(action.append(number).c_str());
+	chdir(number);
+}
+
+void Slave::cleanUp(){
+	char number[10];
+	sprintf(number,"%d",id);
+	chdir("../");
+	string action = "rm -rf ";
+	system(action.append(number).c_str());
 }
 
 //void sendFinished(File file)

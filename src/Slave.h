@@ -11,6 +11,7 @@
 #include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <sstream>
 #include <string>
 #include "Master.h"
@@ -25,7 +26,9 @@ private:
 	const static char* FILE_CHECKPOINT;
 	
 	std::list<std::string> getChangedFiles();
-	
+	void cleanUp();
+	void changeDir();
+		
 public:
 	Slave(int rank);
 	virtual ~Slave();
