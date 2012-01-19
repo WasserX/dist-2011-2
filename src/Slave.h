@@ -32,6 +32,7 @@ private:
 public:
 	Slave(int rank);
 	virtual ~Slave();
+	void sendFinished();
 	void receiveTask();
 	//void execute();
 };

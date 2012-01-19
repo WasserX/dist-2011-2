@@ -12,11 +12,11 @@ const char* Slave::FILE_CHECKPOINT = "___FILE_CHECKPOINT___";
 
 Slave::Slave(int rank) {
 	id = rank;
-	changeDir();
+	//changeDir();
 }
 
 Slave::~Slave() {
-	cleanUp();
+	//cleanUp();
 }
 
 void Slave::changeDir(){
@@ -57,16 +57,30 @@ std::list<std::string> Slave::getChangedFiles(){
 	return fileList;
 }
 
+void Slave::sendFinished() {
+	std::list<std::string> changedFiles = getChangedFiles();
+	//File_names
+	string allNames = "";
+	for(std::list<std::string>::iterator it = changedFiles.begin(); it != changedFiles.end(); it++){
+		allNames.append(*it + " ");
+	}
+	char allFileNames[Master::FILE_NAME_SIZE];
+	strcpy(allFileNames, allNames.substr(0, allNames.size()-1).c_str());
+	MPI_Send(allFileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, Master::RESPONSE_FILE_LIST_TAG, MPI_COMM_WORLD);
+}
+
 void Slave::receiveTask() {
 
 	MPI_Recv(command, Master::COMMAND_SIZE, MPI_BYTE, Master::ID, Master::COMMAND_TAG, MPI_COMM_WORLD, &status); //command
 
 	MPI_Recv(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, Master::FILE_NAME_TAG, MPI_COMM_WORLD, &status); //file name
 	//MPI_Recv(files[i], 1024, MPI_BYTE, MASTERID, MESSAGETAG, MPI_COMM_WORLD, &status); //file
-
+	std::string result = "touch ";
+	result += FILE_CHECKPOINT;
+	system(result.c_str());
 	//Execute command
 	system(command);
-
+	sendFinished();
 }
 
 /*void Slave::execute() {
