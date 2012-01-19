@@ -19,8 +19,6 @@
 class Slave {
 private:
 	int id;
-	char command[Master::COMMAND_SIZE];
-	char fileNames[Master::FILE_NAME_SIZE];
   MPI_Status status;
   MPI_Request* reqFinished;
   MPI_Request* reqReceived;
@@ -35,7 +33,7 @@ public:
 	Slave(int rank);
 	virtual ~Slave();
 	void sendFinished();
-	void receiveTask();
+	void receiveTask(const char command[]);
 	void execute();
 };
 

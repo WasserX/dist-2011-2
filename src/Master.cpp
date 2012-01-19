@@ -44,19 +44,16 @@ void Master::updateReadyToCompute(){
 void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int target) {
 	using namespace std;
 
+	//Command
 	char command[COMMAND_SIZE];
 	strcpy(command, input.first->getCommand().c_str());
-	std::list<std::string> fileNames = input.second;	
-	//Command
 	MPI_Send(command, COMMAND_SIZE, MPI_BYTE, target, COMMAND_TAG, MPI_COMM_WORLD);
-	//File_names
-	string allNames = "";
-	for(std::list<std::string>::iterator it = fileNames.begin(); it != fileNames.end(); it++){
-		allNames.append(*it + " ");
-	}
-	char allFileNames[FILE_NAME_SIZE];
-	strcpy(allFileNames, allNames.substr(0, allNames.size()-1).c_str());
-	MPI_Send(allFileNames, FILE_NAME_SIZE, MPI_BYTE, target, FILE_NAME_TAG, MPI_COMM_WORLD);
+	
+	//Terminals: Structure: "(0|1 executableFile) (fileName)*"
+	//The executable file will have his permissions changed
+	char *files = getFormattedFilesToSend(command, input.second);
+	MPI_Send(files, FILE_NAME_SIZE, MPI_BYTE, target, FILE_NAME_TAG, MPI_COMM_WORLD);
+	
 	//Add to computing
 	computing.insert(std::pair<int, Node*>(target, input.first));
 	//Remove from available
@@ -117,6 +114,32 @@ void Master::receiveFinished() {
 	}
 	if(once)
 		updateReadyToCompute();
+}
+
+char* Master::getFormattedFilesToSend(const std::string& command, const std::list<std::string>& terminals){
+	string filesToSend = getExecutableFromCommand(command);
+	if (!filesToSend.empty())
+		filesToSend.insert(0,"1 ");
+	else
+		filesToSend.insert(0,"0 ");
+			
+	for(list<string>::const_iterator it = terminals.begin(); it != terminals.end(); it++){
+		filesToSend.append(*it + " ");
+	}
+	char files[FILE_NAME_SIZE];
+	return strcpy(files, filesToSend.substr(0, filesToSend.size()-1).c_str());
+}
+
+std::string Master::getExecutableFromCommand(const std::string command){
+	struct stat statFile;
+	
+	std::istringstream ss(command);
+	std::string exec;
+	ss >> exec;
+	if (stat(exec.c_str(), &statFile) == -1)
+		return "";
+	else
+		return exec;	
 }
 
 std::pair<Node*, std::list<std::string> > Master::nextNode(int id){

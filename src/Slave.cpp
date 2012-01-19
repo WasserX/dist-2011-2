@@ -69,12 +69,34 @@ void Slave::sendFinished() {
 	MPI_Send(allFileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, Master::RESPONSE_FILE_LIST_TAG, MPI_COMM_WORLD);
 }
 
-void Slave::receiveTask() {
-	MPI_Recv(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, Master::FILE_NAME_TAG, MPI_COMM_WORLD, &status); //file name
+void Slave::receiveTask(const char command[]) {
+	//Command has been received asynchronously
+	char fileNames[Master::FILE_NAME_SIZE];
+	MPI_Recv(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, 
+	 Master::FILE_NAME_TAG, MPI_COMM_WORLD, &status); //Receive Terminals
+	
+	list<string> filesToReceive;
+	int receivedExec = 0;
+	string terminal;
+	istringstream iss(fileNames);
+	iss >> receivedExec;
+	while(iss >> terminal)
+		filesToReceive.push_back(terminal);
+	
+	/*
+	//////////Treat if receivedExec//////////////
+	//Done after the file is received
+	if(receivedExec){
+		string permissionCommand = "chmod +x ";
+		permissionCommand += filesToReceive.front();
+		system(permissionCommand.c_str());
+	}
+	*/
+	
 	//MPI_Recv(files[i], 1024, MPI_BYTE, MASTERID, MESSAGETAG, MPI_COMM_WORLD, &status); //file
-	std::string result = "touch ";
-	result += FILE_CHECKPOINT;
-	system(result.c_str());
+	std::string touchCommand = "touch ";
+	touchCommand += FILE_CHECKPOINT;
+	system(touchCommand.c_str());
 	//Execute command
 	system(command);
 }
@@ -83,6 +105,7 @@ void Slave::execute() {
 	int flagFinish = 0;
 	int flagReceived = 0;
 	int finish;
+	char command[Master::COMMAND_SIZE];
 
 	MPI_Irecv(&finish, Master::FINISH_SIZE, MPI_INT, Master::ID, 
 		Master::FINISH_TAG, MPI_COMM_WORLD, reqFinished);
@@ -93,7 +116,8 @@ void Slave::execute() {
 		MPI_Test(reqFinished, &flagFinish, &status);
 		MPI_Test(reqReceived, &flagReceived, &status);
 		if(flagReceived){
-			receiveTask();
+			cout << "Flag Received" << endl;
+			receiveTask(command);
 			sendFinished();
 			MPI_Irecv(command, Master::COMMAND_SIZE, MPI_BYTE, Master::ID,
 							 Master::COMMAND_TAG, MPI_COMM_WORLD, reqReceived);

@@ -11,6 +11,8 @@
 #include <list>
 #include <map>
 #include <string>
+#include <sstream>
+#include <sys/stat.h>
 #include <mpi.h>
 #include <string.h>
 #include "Node.h"
@@ -39,6 +41,8 @@ public:
 
 private:
 	void updateReadyToCompute();
+	std::string getExecutableFromCommand(const std::string command);
+	char* getFormattedFilesToSend(const std::string& command, const std::list<std::string>& terminals);
 	void sendTask(std::pair<Node*, std::list<std::string> > input, int target);
 	void receiveFinished();
 	std::pair<Node*, std::list<std::string> > nextNode(int id);
