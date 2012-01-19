@@ -52,7 +52,7 @@ private:
 	std::vector<Node*> graph;
 	std::list<int> resources;
 	std::map<int, std::list<std::string> > filesInResource; //For each resource a list of files that already has
-	std::vector<Node*> readyToCompute;
+	std::list<Node*> readyToCompute;
 	std::list<int> availableResources;
 	std::map<int, Node*> computing; //Who is computing and what
 	std::map<int, MPI_Request*> requests;

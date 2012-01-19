@@ -73,7 +73,9 @@ void Slave::receiveTask(const char command[]) {
 	//Command has been received asynchronously
 	char fileNames[Master::FILE_NAME_SIZE];
 	MPI_Recv(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, 
-	 Master::FILE_NAME_TAG, MPI_COMM_WORLD, &status); //Receive Terminals
+	 Master::FILE_NAME_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE); //Receive Terminals
+	 
+	std::cout << "Slave " << id << " received files: " << fileNames << " and command: " << command << endl;
 	
 	list<string> filesToReceive;
 	int receivedExec = 0;
@@ -108,19 +110,18 @@ void Slave::execute() {
 	char command[Master::COMMAND_SIZE];
 
 	MPI_Irecv(&finish, Master::FINISH_SIZE, MPI_INT, Master::ID, 
-		Master::FINISH_TAG, MPI_COMM_WORLD, reqFinished);
+		Master::FINISH_TAG, MPI_COMM_WORLD, &reqFinished);
 	
-	MPI_Irecv(command, Master::COMMAND_SIZE, MPI_BYTE, Master::ID, Master::COMMAND_TAG, MPI_COMM_WORLD, reqReceived);
+	MPI_Irecv(command, Master::COMMAND_SIZE, MPI_BYTE, Master::ID, Master::COMMAND_TAG, MPI_COMM_WORLD, &reqReceived);
 	
 	do{
-		MPI_Test(reqFinished, &flagFinish, &status);
-		MPI_Test(reqReceived, &flagReceived, &status);
+		MPI_Test(&reqFinished, &flagFinish, MPI_STATUS_IGNORE);
+		MPI_Test(&reqReceived, &flagReceived, MPI_STATUS_IGNORE);
 		if(flagReceived){
-			cout << "Flag Received" << endl;
 			receiveTask(command);
 			sendFinished();
 			MPI_Irecv(command, Master::COMMAND_SIZE, MPI_BYTE, Master::ID,
-							 Master::COMMAND_TAG, MPI_COMM_WORLD, reqReceived);
+							 Master::COMMAND_TAG, MPI_COMM_WORLD, &reqReceived);
 			flagReceived = 0;
 		}
 	}while( !flagFinish );

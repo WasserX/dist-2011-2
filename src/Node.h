@@ -8,10 +8,11 @@
 class Node {
 public:
 	Node();
-	inline Node(std::string ruleName) { nodeName = ruleName; rule = false; hasFinished = false; };
+	Node(std::string ruleName);
 	~Node();
 	inline void setRule(bool value) { rule = value; };
-	inline void setFinished(bool value) { hasFinished = value; };
+	inline void setFinished() { hasFinished = true; };
+	inline void setComputing() { computing = true; };
 	inline void setCommand(std::string com) { command = com; };
 	inline void addDependency() { dependencies++; };
 	inline void addResolves(Node* dep) { solves.push_back(dep); };
@@ -25,11 +26,13 @@ public:
 	inline bool isFinished() { return hasFinished; };
 	inline bool isRule() { return rule; };
 	inline bool isReady() { return dependencies == 0; };
+	inline bool isComputing() { return computing; };
 	void toString();
 
 private:
 	bool hasFinished;
 	bool rule;
+	bool computing;
 	std::string nodeName;
 	int dependencies;
 	std::list<Node*> solves;

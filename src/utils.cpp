@@ -21,7 +21,7 @@ vector<Node*> parseFile(string fileName) {
 				exit(EXIT_FAILURE);
 			string nodeName = cleanWhiteSpaces(line.substr(0,found));
 			map<string, Node*>::iterator it = nodeMap.find(nodeName);
-			aNode = it == nodeMap.end() ? new Node(nodeName) : it->second;
+			aNode = it == nodeMap.end() ? new Node(nodeName) : it->second;				
 			aNode->setRule(true);
 			//Dependencies
 			istringstream iss(line.substr(found+1));
@@ -54,7 +54,7 @@ vector<Node*> parseFile(string fileName) {
 
 	for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++){
 		if(checkIfDepUpToDate((*it)->getNodeName(), (*it)->getTerminals()))
-			(*it)->setFinished(true);
+			(*it)->setFinished();
 	}
 	return graph;
 }
