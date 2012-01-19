@@ -5,6 +5,15 @@ Node::Node() {
 	rule = false;
 	hasFinished = false;
 	dependencies = 0;
+	computing = false;
+}
+
+Node::Node(std::string ruleName) { 
+	nodeName = ruleName;
+	rule = false;
+	hasFinished = false;
+	dependencies = 0;
+	computing = false;
 }
 
 Node::~Node() {
@@ -28,5 +37,6 @@ void Node::toString(){
 	cout << "Terminals: ";
 	for(list<string>::iterator it = terminals.begin(); it != terminals.end(); it++)
 		cout << *it << " ";
+
 	cout << endl << endl;
 }

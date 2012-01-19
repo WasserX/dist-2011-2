@@ -26,7 +26,15 @@ void Master::execute(){
 		}
 		else if ( !computing.empty() )
 			receiveFinished();
-	} while( !readyToCompute.empty() && !computing.empty() );
+	} while( !readyToCompute.empty() || !computing.empty() );
+
+	/*for(list<Node*>::iterator it = readyToCompute.begin(); it != readyToCompute.end(); it++) {
+		(*it)->toString();
+	}
+	cout << "********************************************" << endl;
+	for(map<int, Node*>::iterator it = computing.begin(); it != computing.end(); it++) {
+		it->second->toString();
+	}*/
 
 	int finish = 1;
 	for(list<int>::iterator it = resources.begin(); it != resources.end(); it++)
@@ -35,8 +43,10 @@ void Master::execute(){
 
 void Master::updateReadyToCompute(){
 	using namespace std;
+	readyToCompute.clear();
+	
 	for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++){
-		if((*it)->isReady() && !(*it)->isFinished())
+		if((*it)->isReady() && !(*it)->isFinished() && !(*it)->isComputing())
 			readyToCompute.push_back(*it);
 	}
 }
@@ -57,10 +67,15 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	char allFileNames[FILE_NAME_SIZE];
 	strcpy(allFileNames, allNames.substr(0, allNames.size()-1).c_str());
 	MPI_Send(allFileNames, FILE_NAME_SIZE, MPI_BYTE, target, FILE_NAME_TAG, MPI_COMM_WORLD);
+
+	cout << "I am sending task to " << target << " with command: " << command << endl;
 	//Add to computing
 	computing.insert(std::pair<int, Node*>(target, input.first));
 	//Remove from available
 	availableResources.pop_front();
+	readyToCompute.remove(input.first);
+	input.first->setComputing();
+	
 	//Waits first part of answer async
 	map<int, MPI_Request*>::iterator ptRequests = requests.find(target);
 	if( ptRequests == requests.end() )
@@ -69,9 +84,9 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	map<int, char*>::iterator ptBuffers = rcvBuffers.find(target);
 	if( ptBuffers == rcvBuffers.end() )
 		ptBuffers = rcvBuffers.insert(pair<int, char*>(target,(char*) malloc (FILE_NAME_SIZE))).first;
-	
 	MPI_Irecv(ptBuffers->second, FILE_NAME_SIZE, MPI_BYTE, target, 
 		RESPONSE_FILE_LIST_TAG, MPI_COMM_WORLD, ptRequests->second);
+
 }
 
 void Master::receiveFinished() {
@@ -88,11 +103,11 @@ void Master::receiveFinished() {
 		if( ptRequest != requests.end() )
 			MPI_Test(ptRequest->second, &flag, &status);
 		if(flag){
-			cout << "I'm " << ptRequest->first << " Finished doing my tasks, these are the files I created: " 
-			<< rcvBuffers.find(ptRequest->first)->second << endl;
+			//cout << "I'm " << ptRequest->first << " Finished doing my tasks, these are the files I created: " << rcvBuffers.find(ptRequest->first)->second << endl;
 			//Should get the files
 			
 			//Updating Graph
+			mapIt->second->setFinished();
 			istringstream iss(rcvBuffers.find(ptRequest->first)->second);
 			string file;
 			list<string> files;
@@ -127,10 +142,12 @@ std::pair<Node*, std::list<std::string> > Master::nextNode(int id){
 
 	unsigned int bestDistance = INF;
 	Node* selected;
-	for(vector<Node*>::iterator it = readyToCompute.begin(); it != readyToCompute.end(); it++)
+	for(list<Node*>::iterator it = readyToCompute.begin(); it != readyToCompute.end(); it++)
 	{
+
 		if ((*it)->isFinished()) //This eliminates the terminals that are always ready
 			continue;
+
 		other = (*it)->getTerminals();
 		other.sort();
 		other = diffLists(other, inProcess);

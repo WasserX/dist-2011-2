@@ -21,9 +21,9 @@ private:
 	int id;
 	char command[Master::COMMAND_SIZE];
 	char fileNames[Master::FILE_NAME_SIZE];
-  MPI_Status status;
-  MPI_Request* reqFinished;
-  MPI_Request* reqReceived;
+  	MPI_Status status;
+  	MPI_Request reqFinished;
+  	MPI_Request reqReceived;
 
 	const static char* FILE_CHECKPOINT;
 	

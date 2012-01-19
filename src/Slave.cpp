@@ -70,8 +70,9 @@ void Slave::sendFinished() {
 }
 
 void Slave::receiveTask() {
-	MPI_Recv(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, Master::FILE_NAME_TAG, MPI_COMM_WORLD, &status); //file name
-	//MPI_Recv(files[i], 1024, MPI_BYTE, MASTERID, MESSAGETAG, MPI_COMM_WORLD, &status); //file
+	MPI_Recv(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, Master::FILE_NAME_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE); //file name
+	std::cout << "Slave " << id << " received files: " << fileNames << " and command: " << command << endl; 
+	//MPI_Recv(files[i], 1024, MPI_BYTE, MASTERID, MESSAGETAG, MPI_COMM_WORLD, &MPI_STATUS_IGNORE); //file
 	std::string result = "touch ";
 	result += FILE_CHECKPOINT;
 	system(result.c_str());
@@ -82,21 +83,22 @@ void Slave::receiveTask() {
 void Slave::execute() {
 	int flagFinish = 0;
 	int flagReceived = 0;
-	int finish;
+	int finish = 0;
+
 
 	MPI_Irecv(&finish, Master::FINISH_SIZE, MPI_INT, Master::ID, 
-		Master::FINISH_TAG, MPI_COMM_WORLD, reqFinished);
+		Master::FINISH_TAG, MPI_COMM_WORLD, &reqFinished);
 	
-	MPI_Irecv(command, Master::COMMAND_SIZE, MPI_BYTE, Master::ID, Master::COMMAND_TAG, MPI_COMM_WORLD, reqReceived);
+	MPI_Irecv(command, Master::COMMAND_SIZE, MPI_BYTE, Master::ID, Master::COMMAND_TAG, MPI_COMM_WORLD, &reqReceived);
 	
 	do{
-		MPI_Test(reqFinished, &flagFinish, &status);
-		MPI_Test(reqReceived, &flagReceived, &status);
+		MPI_Test(&reqFinished, &flagFinish, MPI_STATUS_IGNORE);
+		MPI_Test(&reqReceived, &flagReceived, MPI_STATUS_IGNORE);
 		if(flagReceived){
 			receiveTask();
 			sendFinished();
 			MPI_Irecv(command, Master::COMMAND_SIZE, MPI_BYTE, Master::ID,
-							 Master::COMMAND_TAG, MPI_COMM_WORLD, reqReceived);
+							 Master::COMMAND_TAG, MPI_COMM_WORLD, &reqReceived);
 			flagReceived = 0;
 		}
 	}while( !flagFinish );
