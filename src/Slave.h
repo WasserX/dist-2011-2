@@ -22,6 +22,8 @@ private:
 	char command[Master::COMMAND_SIZE];
 	char fileNames[Master::FILE_NAME_SIZE];
   MPI_Status status;
+  MPI_Request* reqFinished;
+  MPI_Request* reqReceived;
 
 	const static char* FILE_CHECKPOINT;
 	
@@ -34,7 +36,7 @@ public:
 	virtual ~Slave();
 	void sendFinished();
 	void receiveTask();
-	//void execute();
+	void execute();
 };
 
 #endif /* SLAVE_H_ */

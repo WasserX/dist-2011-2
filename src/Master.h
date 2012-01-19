@@ -28,11 +28,13 @@ public:
 	
 	//Constants
 	const static int ID = 0;
+	const static int FINISH_SIZE = 1;
 	const static int COMMAND_SIZE = 1000;
 	const static int FILE_NAME_SIZE = 1000;
 	const static int COMMAND_TAG = 100;
 	const static int FILE_NAME_TAG = 101;
 	const static int FILE_QUANT_TAG = 102;
+	const static int FINISH_TAG = 103;
 	const static int RESPONSE_FILE_LIST_TAG = 200;
 
 private:

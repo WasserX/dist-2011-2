@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 	}
 	else {
 		Slave* slave = new Slave(rank);
-		slave->receiveTask();
+		slave->execute();
 	}
 	MPI_Finalize();  /* EXIT MPI */
 	return 0;
