@@ -68,16 +68,16 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 
 
 	//Send Files
-	char *fileContent;
+	pair<char*, unsigned long> fileContent;
 	string fileName = getExecutableFromCommand(command); //Checks if exec needs to be send
 	if(!fileName.empty()){
 		fileContent = readFile(fileName);
-		//MPI_Send(fileContent, FILE_SIZE, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);
+		MPI_Send(fileContent.first, fileContent.second, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);
 	}
 	//Sends all other dependencies
 	for(list<string>::iterator it = input.second.begin(); it != input.second.end(); it++) {
 		fileContent = readFile(*it);
-		//MPI_Send(fileContent, FILE_SIZE, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);		
+		MPI_Send(fileContent.first, fileContent.second, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);		
 	}
 
 	//Mark files as available in resource
@@ -154,28 +154,29 @@ void Master::receiveFinished() {
 }
 
 char* Master::getFormattedFilesToSend(int target, const std::string& command, const std::list<std::string>& terminals){
-	string filesToSend = getExecutableFromCommand(command);	
-
+	string exec = getExecutableFromCommand(command);	
 	//If executable already in resource, do not send it again	
-	if( !filesToSend.empty() ) {
+	if( !exec.empty() ) {
 		list<string>* inRes = filesInResource.find(target)->second;
-		for(list<string>::iterator it = inRes->begin(); it != inRes->end(); it++)
-			if( (*it) == filesToSend ){
-				filesToSend = "";
+		for(list<string>::const_iterator it = inRes->begin(); it != inRes->end(); it++)
+			if( (*it) == exec ){
+				exec = "";
 				break;
 			}
 	}
 
-	if (!filesToSend.empty())
-		filesToSend.insert(0,"1 ");
-	else
-		filesToSend.insert(0,"0 ");
-			
-	for(list<string>::const_iterator it = terminals.begin(); it != terminals.end(); it++){
-		filesToSend.append(*it + " ");
+	string filesToSend(getFilesAndSizes(terminals));
+	if( !exec.empty()){
+		exec.assign(getFileAndSize(exec)).append(" ");
+		exec.insert(0, "1 ");
 	}
+	else
+		exec.insert(0, "0 ");
+	
+	filesToSend.insert(0,exec);
+
 	char files[FILE_NAME_SIZE];
-	return strcpy(files, filesToSend.substr(0, filesToSend.size()-1).c_str());
+	return strcpy(files, filesToSend.c_str());
 }
 
 std::string Master::getExecutableFromCommand(const std::string command){

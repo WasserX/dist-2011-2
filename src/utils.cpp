@@ -84,7 +84,7 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 
 string cleanWhiteSpaces(string str) {
 	unsigned int beg, end;
-	for(beg = 0; beg < str.length() && str[beg] == ' '; beg++);
+	for(beg = 0; beg < str.length() && ( str[beg] == ' ' || str[beg] == 9 ); beg++);
 	for(end = beg; end < str.length() && str[end] != ' '; end++);
 	return str.substr(beg,end-beg);
 }
@@ -107,7 +107,7 @@ bool checkIfDepUpToDate(string ruleName, list<string> depNames){
 	return true;
 }
 
-char* readFile(std::string fileName) {
+pair<char*, unsigned long> readFile(std::string fileName) {
 	using namespace std;
 	FILE *file;
 	char *content;
@@ -125,12 +125,9 @@ char* readFile(std::string fileName) {
 	fseek(file, 0, SEEK_END);
 	fileLen=ftell(file);
 	fseek(file, 0, SEEK_SET);
-	bool fileLenError = false;
-	if(fileLen < Master::FILE_SIZE)
-		fileLenError = true;
 	//Allocate memory
 	content=(char *)malloc(fileLen);
-	if (!content || fileLenError)
+	if (!content)
 	{
 		fprintf(stderr, "Memory error!");
     	fclose(file);
@@ -138,9 +135,9 @@ char* readFile(std::string fileName) {
 	}
 
 	//Read file contents into buffer
-	fread(content, sizeof(char), Master::FILE_SIZE, file);
+	fread(content, sizeof(char), fileLen, file);
 	fclose(file);
-	return content;
+	return pair<char*, unsigned long>(content, fileLen);
 }
 
 void writeFile(char* buffer, std::string fileName) {
@@ -148,6 +145,61 @@ void writeFile(char* buffer, std::string fileName) {
   	file.open(fileName.c_str());
   	file << buffer;
   	file.close();	
+}
+
+char* getFilesAndSizes(const std::list<std::string>& fileNames){
+	using namespace std;
+	
+	string commandLS = "ls -l | grep -E \'";
+	for(list<string>::const_iterator it = fileNames.begin(); it != fileNames.end(); it++)
+		if( !it->empty())
+			commandLS.append(*it).append("|");
+	commandLS.insert(commandLS.size()-1, "\' | awk \'{print $8\" \"$5}\'");
+	
+	FILE* pipe = popen(commandLS.c_str(), "r");
+	char buffer[Master::FILE_NAME_SIZE];
+	stringstream ss;	
+	while(!feof(pipe)) {
+		if(fgets(buffer, Master::FILE_NAME_SIZE, pipe) != NULL)
+			ss << buffer;
+	}	
+	pclose(pipe);
+	
+	string output;
+	string filesToSend;
+	while( ss >> output){
+			filesToSend.append(" ").append(output + " ");
+			ss >> output;
+			filesToSend += output;
+	}
+	char files[Master::FILE_NAME_SIZE];
+	return strcpy(files, filesToSend.substr(0,filesToSend.size()-1).c_str());
+}
+
+char* getFileAndSize(const std::string& fileName){
+	using namespace std;
+	
+	string commandLS = "ls -l | grep -E \'";
+	commandLS.append(fileName + "\' | awk \'{print $8\" \"$5}\'");
+	
+	FILE* pipe = popen(commandLS.c_str(), "r");
+	char buffer[Master::FILE_NAME_SIZE];
+	stringstream ss;	
+	while(!feof(pipe)) {
+		if(fgets(buffer, Master::FILE_NAME_SIZE, pipe) != NULL)
+			ss << buffer;
+	}	
+	pclose(pipe);
+
+	string output;
+	string toReturn;
+	while( ss >> output){
+		toReturn += output + " ";
+		ss >> output;
+		toReturn += output;
+	}
+	char toReturnChar[toReturn.size()+1];
+	return strcpy(toReturnChar, toReturn.c_str());
 }
 
 /*
