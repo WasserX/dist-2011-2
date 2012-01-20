@@ -125,13 +125,15 @@ char* readFile(std::string fileName) {
 	fseek(file, 0, SEEK_END);
 	fileLen=ftell(file);
 	fseek(file, 0, SEEK_SET);
-
+	bool fileLenError = false;
+	if(fileLen < Master::FILE_SIZE)
+		fileLenError = true;
 	//Allocate memory
-	content=(char *)malloc(fileLen+1);
-	if (!content)
+	content=(char *)malloc(fileLen);
+	if (!content || fileLenError)
 	{
 		fprintf(stderr, "Memory error!");
-    fclose(file);
+    	fclose(file);
 		exit(EXIT_FAILURE);
 	}
 
@@ -140,22 +142,12 @@ char* readFile(std::string fileName) {
 	fclose(file);
 	return content;
 }
-//Erases buffer after successful writing
-void writeFile(char* buffer, std::string fileName){
-	FILE *file;
 
-	//Open file
-	file = fopen(fileName.c_str(), "w+");
-	if (!file)
-	{
-		fprintf(stderr, "Unable to open file %s\n", fileName.c_str());
-		exit(EXIT_FAILURE);
-	}
-	
-	//Write contents to file
-	fwrite(buffer, sizeof(char), Master::FILE_SIZE, file);
-	fclose(file);
-	free(buffer);
+void writeFile(char* buffer, std::string fileName) {
+	ofstream file;
+  	file.open(fileName.c_str());
+  	file << buffer;
+  	file.close();	
 }
 
 /*
