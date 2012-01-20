@@ -60,38 +60,40 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	char command[COMMAND_SIZE];
 	strcpy(command, input.first->getCommand().c_str());
 	MPI_Send(command, COMMAND_SIZE, MPI_BYTE, target, COMMAND_TAG, MPI_COMM_WORLD);
-
-	//Terminals: Structure: "(0|1 executableFile) (fileName)*"
-	//The executable file will have his permissions changed
+	
+	//File List
 	char *files = getFormattedFilesToSend(target, command, input.second);
 	MPI_Send(files, FILE_NAME_SIZE, MPI_BYTE, target, FILE_NAME_TAG, MPI_COMM_WORLD);
 
-
 	//Send Files
 	pair<char*, unsigned long> fileContent;
-	string fileName = getExecutableFromCommand(command); //Checks if exec needs to be send
-	if(!fileName.empty()){
+	string fileName;
+	int size, sendExec = 0;
+	istringstream iss(files);
+	
+	iss >> sendExec;
+	if(sendExec){
+		iss >> fileName >> size;
 		fileContent = readFile(fileName);
 		MPI_Send(fileContent.first, fileContent.second, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);
 	}
-	//Sends all other dependencies
-	for(list<string>::iterator it = input.second.begin(); it != input.second.end(); it++) {
-		fileContent = readFile(*it);
-		MPI_Send(fileContent.first, fileContent.second, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);		
-	}
+	while(iss >> fileName){
+		iss >> size;
+		fileContent = readFile(fileName);
+		MPI_Send(fileContent.first, fileContent.second, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);
+	}	
 
 	//Mark files as available in resource
 	//input.second will be DESTROYED
 	list<string>* fRes = filesInResource.find(target)->second;
 	fRes->splice(fRes->begin(), input.second);
 
-	cout << "I am sending task to " << target << " with command: " << command << endl;
 	//Add to computing
 	computing.insert(std::pair<int, Node*>(target, input.first));
+	input.first->setComputing();
 	//Remove from available
 	availableResources.pop_front();
 	readyToCompute.remove(input.first);
-	input.first->setComputing();
 	
 	//Waits first part of answer async
 	map<int, MPI_Request*>::iterator ptRequests = requests.find(target);
@@ -153,6 +155,8 @@ void Master::receiveFinished() {
 		updateReadyToCompute();
 }
 
+//Terminals: Structure: "(0|1 executableFile) (fileName)*"
+//The executable file will have his permissions changed
 char* Master::getFormattedFilesToSend(int target, const std::string& command, const std::list<std::string>& terminals){
 	string exec = getExecutableFromCommand(command);	
 	//If executable already in resource, do not send it again	
