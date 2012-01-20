@@ -22,8 +22,6 @@ int main(int argc, char **argv) {
 	if (argc > 1)
 		rule.assign(argv[1]);
 
-	cout << rule << endl << "RULEEEEEEEEEEEEEEEEEE" << endl;
-
 	if(rank == 0) {
 		list<int> listIds;
 		for(int i=1; i<size; i++) {

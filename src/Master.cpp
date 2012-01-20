@@ -10,6 +10,10 @@
 Master::Master(std::vector<Node*> graph, std::list<int> resources){
 	using namespace std;
 	this->graph = graph;
+	
+	//for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++)
+	//	(*it)->toString();
+
 	availableResources = resources;
 	this->resources = resources;
 	for(list<int>::iterator it = availableResources.begin(); it != availableResources.end(); it++)
@@ -20,6 +24,10 @@ Master::Master(std::vector<Node*> graph, std::list<int> resources){
 
 void Master::execute(){
 	using namespace std;
+	
+	if( graph.empty() )
+		return;
+	
 	do {
 		if ( !readyToCompute.empty() && !availableResources.empty() ) {
 			sendTask(nextNode(availableResources.front()), availableResources.front());
@@ -27,14 +35,6 @@ void Master::execute(){
 		else if ( !computing.empty() )
 			receiveFinished();
 	} while( !readyToCompute.empty() || !computing.empty() );
-
-	/*for(list<Node*>::iterator it = readyToCompute.begin(); it != readyToCompute.end(); it++) {
-		(*it)->toString();
-	}
-	cout << "********************************************" << endl;
-	for(map<int, Node*>::iterator it = computing.begin(); it != computing.end(); it++) {
-		it->second->toString();
-	}*/
 
 	int finish = 1;
 	for(list<int>::iterator it = resources.begin(); it != resources.end(); it++)
@@ -77,6 +77,11 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 		fileContent = readFile(*it);
 		//MPI_Send(fileContent, FILE_SIZE, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);		
 	}
+
+	//Mark files as available in resource
+	list<string> fRes = filesInResource.find(target)->second;
+	for(list<string>::iterator it = input.second.begin(); it != input.second.end(); it++)
+		fRes.push_back(*it);
 
 	cout << "I am sending task to " << target << " with command: " << command << endl;
 	//Add to computing
@@ -134,6 +139,10 @@ void Master::receiveFinished() {
 			computing.erase(ptRequest->first);
 			availableResources.push_back(ptRequest->first);
 			
+			//Updating files it contains
+			res = filesInResource.find(mapIt->first)->second;
+			res.splice(res.begin(),files);
+
 			once = true;
 			flag= 0;
 		} 
