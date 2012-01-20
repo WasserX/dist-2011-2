@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 
 	//Using rule passed as starting point
 	if (argc > 1)
-		rule.assign(argv([1]);
+		rule.assign(argv[1]);
 
 	cout << rule << endl << "RULEEEEEEEEEEEEEEEEEE" << endl;
 

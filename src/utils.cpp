@@ -17,8 +17,10 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 				continue;
 			//Rule
 			found = line.find_first_of(":");
-			if(found == string::npos)
-				exit(EXIT_FAILURE);
+			if(found == string::npos){
+				cout << "Error parsing Makefile" << endl;
+				return graph;
+			}
 			string nodeName = cleanWhiteSpaces(line.substr(0,found));
 			map<string, Node*>::iterator it = nodeMap.find(nodeName);
 			aNode = it == nodeMap.end() ? new Node(nodeName) : it->second;				
@@ -29,6 +31,7 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 				aDep = cleanWhiteSpaces(aDep);
 				retInsert = nodeMap.insert(pair<string,Node*>(aDep,new Node(aDep)));
 				aNode->addDependency();
+				aNode->addNeeds(retInsert.first->second);
 				retInsert.first->second->addResolves(aNode);
 			}
 			//Copy rule
@@ -37,6 +40,26 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 			nodeMap.insert(pair<string,Node*>(aNode->getNodeName(),aNode));
 		}
 		input.close();
+	}
+
+	if(!startingRule.empty()){
+		map<string, Node*>::iterator it = nodeMap.find(startingRule);
+		if ( it == nodeMap.end() ){
+			cout << "Error finding rule passed" << endl;
+			return graph;
+		}
+		list<Node*> toAnalize;
+		Node* n;
+		
+		toAnalize.push_back(it->second);
+		nodeMap.clear();
+
+		while(!toAnalize.empty()){
+			n = toAnalize.front();
+			toAnalize.pop_front();
+			nodeMap.insert(pair<string,Node*>(n->getNodeName(), n));
+			toAnalize.splice(toAnalize.begin(), n->getNeeds());
+		}
 	}
 
 	list<Node*> resolves;

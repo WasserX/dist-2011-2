@@ -15,14 +15,17 @@ public:
 	inline void setComputing() { computing = true; };
 	inline void setCommand(std::string com) { command = com; };
 	inline void addDependency() { dependencies++; };
+	inline void addNeeds(Node* node) { needs.push_back(node); };
 	inline void addResolves(Node* dep) { solves.push_back(dep); };
 	inline void addTerminal(std::string terminal) { terminals.push_back(terminal); };
-	inline std::list<Node*> getResolves() { return solves; };
+	inline const std::list<Node*>& getResolves() { return solves; };
 	inline int getDependencies() { return dependencies; };
+	inline std::list<Node*>& getNeeds() { return needs; };
 	inline std::list<std::string> getTerminals() { return terminals; };
 	inline std::string getNodeName() { return nodeName; };
 	inline std::string getCommand() { return command; };
 	inline void remDependency() { if(dependencies > 0) dependencies--; };
+	inline void remNeeds(Node* node) { needs.remove(node); };
 	inline bool isFinished() { return hasFinished; };
 	inline bool isRule() { return rule; };
 	inline bool isReady() { return dependencies == 0; };
@@ -36,6 +39,7 @@ private:
 	std::string nodeName;
 	int dependencies;
 	std::list<Node*> solves;
+	std::list<Node*> needs; //Used to create used graph only, will be destroyed after parsing
 	std::list<std::string> terminals;
 	std::string command;
 };
