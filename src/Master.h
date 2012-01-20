@@ -13,6 +13,8 @@
 #include <string>
 #include <sstream>
 #include <sys/stat.h>
+#include <iostream>
+#include <fstream>
 #include <mpi.h>
 #include <string.h>
 #include "Node.h"
@@ -47,6 +49,7 @@ private:
 	void sendTask(std::pair<Node*, std::list<std::string> > input, int target);
 	void receiveFinished();
 	std::pair<Node*, std::list<std::string> > nextNode(int id);
+	char* readAllFile(string fileName);
 
 	const static int INF = 99999;
 
