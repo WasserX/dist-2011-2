@@ -22,12 +22,17 @@ Master::Master(std::vector<Node*> graph, std::list<int> resources){
 void Master::execute(){
 	using namespace std;
 	
-	if( graph.empty() )
-		return;
-	
 	do {
 		if ( !readyToCompute.empty() && !availableResources.empty() ) {
-			sendTask(nextNode(availableResources.front()), availableResources.front());
+			//If it's the last rule (all, or something) execute locally
+			if(readyToCompute.size() == 1 && readyToCompute.front()->getResolves().empty()){
+				cout << "Master executing task " << readyToCompute.front()->getNodeName() << endl;
+				system(readyToCompute.front()->getCommand().c_str());
+				readyToCompute.front()->setFinished();
+				readyToCompute.pop_front();
+			}
+			else		
+				sendTask(nextNode(availableResources.front()), availableResources.front());
 		}
 		else if ( !computing.empty() )
 			receiveFinished();
