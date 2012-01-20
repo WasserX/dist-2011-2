@@ -25,7 +25,7 @@ char* readFile(std::string fileName);
 void writeFile(char* buffer, std::string fileName);
 bool checkIfDepUpToDate(string ruleName, list<string> depNames);
 string cleanWhiteSpaces(string str);
-vector<Node*> parseFile(string fileName);
+vector<Node*> parseFile(string fileName, string startingRule);
 std::list<std::string>& diffLists(std::list<std::string>& base, const std::list<std::string>& toCompare);
 
 #endif //UTILS_H

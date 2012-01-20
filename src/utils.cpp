@@ -1,6 +1,6 @@
 #include "utils.h"
 
-vector<Node*> parseFile(string fileName) {
+vector<Node*> parseFile(string fileName, string startingRule) {
 	map<string,Node*> nodeMap;
 	pair<map<string,Node*>::iterator,bool> retInsert;
 	vector<Node*> graph;
