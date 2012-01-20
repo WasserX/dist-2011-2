@@ -12,11 +12,11 @@ const char* Slave::FILE_CHECKPOINT = "___FILE_CHECKPOINT___";
 
 Slave::Slave(int rank) {
 	id = rank;
-	//changeDir();
+	changeDir();
 }
 
 Slave::~Slave() {
-	//cleanUp();
+	cleanUp();
 }
 
 void Slave::changeDir(){
@@ -34,8 +34,6 @@ void Slave::cleanUp(){
 	string action = "rm -rf ";
 	system(action.append(number).c_str());
 }
-
-//void sendFinished(File file)
 
 std::list<std::string> Slave::getChangedFiles(){
 	std::list<std::string> fileList;
@@ -75,27 +73,31 @@ void Slave::receiveTask(const char command[]) {
 	MPI_Recv(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, 
 	 Master::FILE_NAME_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE); //Receive Terminals
 	 
-	std::cout << "Slave " << id << " received files: " << fileNames << " and command: " << command << endl;
+	std::cout << "Slave " << id << " received command: " << command << endl;
 	
-	list<string> filesToReceive;
-	int receivedExec = 0;
-	string terminal;
+	string fileName;
+	int size, receivedExec = 0;
+	char* buffer;	
 	istringstream iss(fileNames);
+
+	//Treating Executable
 	iss >> receivedExec;
-	while(iss >> terminal)
-		filesToReceive.push_back(terminal);
-	
-	/*
-	//////////Treat if receivedExec//////////////
-	//Done after the file is received
 	if(receivedExec){
+		iss >> fileName >> size;
+		buffer = (char *)malloc(size);
+		MPI_Recv(buffer, size, MPI_BYTE, Master::ID, Master::FILE_SEND_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		writeFile(buffer, fileName);
 		string permissionCommand = "chmod +x ";
-		permissionCommand += filesToReceive.front();
-		system(permissionCommand.c_str());
+		system(permissionCommand.append(fileName).c_str());
 	}
-	*/
+	//Treating other files
+	while(iss >> fileName){
+		iss >> size;
+		buffer = (char *)malloc(size);
+		MPI_Recv(buffer, size, MPI_BYTE, Master::ID, Master::FILE_SEND_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		writeFile(buffer, fileName);
+	}
 	
-	//MPI_Recv(files[i], 1024, MPI_BYTE, MASTERID, MESSAGETAG, MPI_COMM_WORLD, &status); //file
 	std::string touchCommand = "touch ";
 	touchCommand += FILE_CHECKPOINT;
 	system(touchCommand.c_str());
