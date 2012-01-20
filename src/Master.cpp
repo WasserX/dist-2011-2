@@ -51,40 +51,6 @@ void Master::updateReadyToCompute(){
 	}
 }
 
-char* Master::readAllFile(string fileName) {
-
-	FILE *file;
-	char *content;
-	unsigned long fileLen;
-
-	//Open file
-	file = fopen(fileName.c_str(), "rb");
-	if (!file)
-	{
-		fprintf(stderr, "Unable to open file %s\n", fileName.c_str());
-		return NULL;
-	}
-	
-	//Get file length
-	fseek(file, 0, SEEK_END);
-	fileLen=ftell(file);
-	fseek(file, 0, SEEK_SET);
-
-	//Allocate memory
-	content=(char *)malloc(fileLen+1);
-	if (!content)
-	{
-		fprintf(stderr, "Memory error!");
-        fclose(file);
-		return NULL;
-	}
-
-	//Read file contents into buffer
-	fread(content, fileLen, 1, file);
-	fclose(file);
-	return content;
-}
-
 void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int target) {
 	using namespace std;
 
@@ -98,22 +64,19 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	char *files = getFormattedFilesToSend(command, input.second);
 	MPI_Send(files, FILE_NAME_SIZE, MPI_BYTE, target, FILE_NAME_TAG, MPI_COMM_WORLD);
 
-	for(list<string>::iterator it = input.second.begin(); it != input.second.end(); it++) {
-		char *fileContent;
-		string fileName;
-		if(it == input.second.begin()) {
-			fileName = getExecutableFromCommand(command);
-			if(fileName != "") {
-				fileContent = readAllFile(fileName);
-				//MPI_Send(fileContent, FILE_SIZE, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);			
-			}
-		}
-		else {
-			fileContent = readAllFile(*it);
-			//MPI_Send(fileContent, FILE_SIZE, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);		
-		}
-	}
 
+	//Send Files
+	char *fileContent;
+	string fileName = getExecutableFromCommand(command); //Checks if exec needs to be send
+	if(!fileName.empty()){
+		fileContent = readFile(fileName);
+		//MPI_Send(fileContent, FILE_SIZE, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);
+	}
+	//Sends all other dependencies
+	for(list<string>::iterator it = input.second.begin(); it != input.second.end(); it++) {
+		fileContent = readFile(*it);
+		//MPI_Send(fileContent, FILE_SIZE, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);		
+	}
 
 	cout << "I am sending task to " << target << " with command: " << command << endl;
 	//Add to computing

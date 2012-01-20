@@ -49,7 +49,6 @@ private:
 	void sendTask(std::pair<Node*, std::list<std::string> > input, int target);
 	void receiveFinished();
 	std::pair<Node*, std::list<std::string> > nextNode(int id);
-	char* readAllFile(string fileName);
 
 	const static int INF = 99999;
 

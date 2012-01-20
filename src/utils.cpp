@@ -84,6 +84,56 @@ bool checkIfDepUpToDate(string ruleName, list<string> depNames){
 	return true;
 }
 
+char* readFile(std::string fileName) {
+	using namespace std;
+	FILE *file;
+	char *content;
+	unsigned long fileLen;
+
+	//Open file
+	file = fopen(fileName.c_str(), "rb");
+	if (!file)
+	{
+		fprintf(stderr, "Unable to open file %s\n", fileName.c_str());
+		exit(EXIT_FAILURE);
+	}
+	
+	//Get file length
+	fseek(file, 0, SEEK_END);
+	fileLen=ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	//Allocate memory
+	content=(char *)malloc(fileLen+1);
+	if (!content)
+	{
+		fprintf(stderr, "Memory error!");
+    fclose(file);
+		exit(EXIT_FAILURE);
+	}
+
+	//Read file contents into buffer
+	fread(content, sizeof(char), Master::FILE_SIZE, file);
+	fclose(file);
+	return content;
+}
+//Erases buffer after successful writing
+void writeFile(char* buffer, std::string fileName){
+	FILE *file;
+
+	//Open file
+	file = fopen(fileName.c_str(), "w+");
+	if (!file)
+	{
+		fprintf(stderr, "Unable to open file %s\n", fileName.c_str());
+		exit(EXIT_FAILURE);
+	}
+	
+	//Write contents to file
+	fwrite(buffer, sizeof(char), Master::FILE_SIZE, file);
+	fclose(file);
+	free(buffer);
+}
 
 /*
 Returns the elements from base that are no present in toCompare.

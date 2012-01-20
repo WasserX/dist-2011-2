@@ -10,6 +10,7 @@
 #include <map>
 #include <list>
 #include "Node.h"
+#include "Master.h"
 
 //For Dependency TimeStamp Checking
 #include <sys/stat.h>
@@ -20,6 +21,8 @@
 
 using namespace std;
 
+char* readFile(std::string fileName);
+void writeFile(char* buffer, std::string fileName);
 bool checkIfDepUpToDate(string ruleName, list<string> depNames);
 string cleanWhiteSpaces(string str);
 vector<Node*> parseFile(string fileName);
