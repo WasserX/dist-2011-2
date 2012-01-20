@@ -17,7 +17,7 @@ Master::Master(std::vector<Node*> graph, std::list<int> resources){
 	availableResources = resources;
 	this->resources = resources;
 	for(list<int>::iterator it = availableResources.begin(); it != availableResources.end(); it++)
-		filesInResource.insert(pair<int, list<string> >(*it, list<string>()));
+		filesInResource.insert(pair<int, list<string>* >(*it, new list<string>()));
 
 	updateReadyToCompute();
 }
@@ -61,7 +61,7 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 
 	//Terminals: Structure: "(0|1 executableFile) (fileName)*"
 	//The executable file will have his permissions changed
-	char *files = getFormattedFilesToSend(command, input.second);
+	char *files = getFormattedFilesToSend(target, command, input.second);
 	MPI_Send(files, FILE_NAME_SIZE, MPI_BYTE, target, FILE_NAME_TAG, MPI_COMM_WORLD);
 
 
@@ -79,9 +79,9 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	}
 
 	//Mark files as available in resource
-	list<string> fRes = filesInResource.find(target)->second;
-	for(list<string>::iterator it = input.second.begin(); it != input.second.end(); it++)
-		fRes.push_back(*it);
+	//input.second will be DESTROYED
+	list<string>* fRes = filesInResource.find(target)->second;
+	fRes->splice(fRes->begin(), input.second);
 
 	cout << "I am sending task to " << target << " with command: " << command << endl;
 	//Add to computing
@@ -140,8 +140,8 @@ void Master::receiveFinished() {
 			availableResources.push_back(ptRequest->first);
 			
 			//Updating files it contains
-			res = filesInResource.find(mapIt->first)->second;
-			res.splice(res.begin(),files);
+			list<string>* res = filesInResource.find(mapIt->first)->second;
+			res->splice(res->begin(),files);
 
 			once = true;
 			flag= 0;
@@ -151,8 +151,19 @@ void Master::receiveFinished() {
 		updateReadyToCompute();
 }
 
-char* Master::getFormattedFilesToSend(const std::string& command, const std::list<std::string>& terminals){
-	string filesToSend = getExecutableFromCommand(command);
+char* Master::getFormattedFilesToSend(int target, const std::string& command, const std::list<std::string>& terminals){
+	string filesToSend = getExecutableFromCommand(command);	
+
+	//If executable already in resource, do not send it again	
+	if( !filesToSend.empty() ) {
+		list<string>* inRes = filesInResource.find(target)->second;
+		for(list<string>::iterator it = inRes->begin(); it != inRes->end(); it++)
+			if( (*it) == filesToSend ){
+				filesToSend = "";
+				break;
+			}
+	}
+
 	if (!filesToSend.empty())
 		filesToSend.insert(0,"1 ");
 	else
@@ -179,8 +190,8 @@ std::string Master::getExecutableFromCommand(const std::string command){
 
 std::pair<Node*, std::list<std::string> > Master::nextNode(int id){
 	using namespace std;
-	list<string> inProcess = filesInResource.find(id)->second;
-	inProcess.sort();
+	list<string>* inProcess = filesInResource.find(id)->second;
+	inProcess->sort();
 	list<string> other;
 
 	unsigned int bestDistance = INF;
@@ -193,7 +204,7 @@ std::pair<Node*, std::list<std::string> > Master::nextNode(int id){
 
 		other = (*it)->getTerminals();
 		other.sort();
-		other = diffLists(other, inProcess);
+		other = diffLists(other, *inProcess);
 
 		if( other.size() < bestDistance ) {
 			selected = *it;
@@ -203,6 +214,6 @@ std::pair<Node*, std::list<std::string> > Master::nextNode(int id){
 
 	other = selected->getTerminals();
 	other.sort();
-	pair<Node*, list<string> > toReturn(selected, diffLists(other, inProcess));
+	pair<Node*, list<string> > toReturn(selected, diffLists(other, *inProcess));
 	return toReturn;
 }

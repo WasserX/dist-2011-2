@@ -45,7 +45,7 @@ public:
 private:
 	void updateReadyToCompute();
 	std::string getExecutableFromCommand(const std::string command);
-	char* getFormattedFilesToSend(const std::string& command, const std::list<std::string>& terminals);
+	char* getFormattedFilesToSend(int target, const std::string& command, const std::list<std::string>& terminals);
 	void sendTask(std::pair<Node*, std::list<std::string> > input, int target);
 	void receiveFinished();
 	std::pair<Node*, std::list<std::string> > nextNode(int id);
@@ -54,7 +54,7 @@ private:
 
 	std::vector<Node*> graph;
 	std::list<int> resources;
-	std::map<int, std::list<std::string> > filesInResource; //For each resource a list of files that already has
+	std::map<int, std::list<std::string>* > filesInResource; //For each resource a list of files that already has
 	std::list<Node*> readyToCompute;
 	std::list<int> availableResources;
 	std::map<int, Node*> computing; //Who is computing and what

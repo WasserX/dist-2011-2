@@ -19,9 +19,9 @@ int main(int argc, char **argv) {
 
 
 	//Using rule passed as starting point
-	if (argc > 1)
-		rule.assign(argv[1]);
-
+	if (argc > 3)
+		rule.assign(argv[3]);
+	
 	if(rank == 0) {
 		list<int> listIds;
 		for(int i=1; i<size; i++) {
