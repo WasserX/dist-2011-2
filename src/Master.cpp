@@ -11,9 +11,6 @@ Master::Master(std::vector<Node*> graph, std::list<int> resources){
 	using namespace std;
 	this->graph = graph;
 	
-	//for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++)
-	//	(*it)->toString();
-
 	availableResources = resources;
 	this->resources = resources;
 	for(list<int>::iterator it = availableResources.begin(); it != availableResources.end(); it++)
