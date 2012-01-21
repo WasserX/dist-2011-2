@@ -198,6 +198,9 @@ std::string Master::getExecutableFromCommand(const std::string command){
 	std::istringstream ss(command);
 	std::string exec;
 	ss >> exec;
+
+  trim(exec).erase(0,exec.find_first_not_of("./"));
+
 	if (stat(exec.c_str(), &statFile) == -1)
 		return "";
 	else

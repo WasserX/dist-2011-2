@@ -193,10 +193,10 @@ char* getFilesAndSizes(const std::list<std::string>& fileNames){
 char* getFileAndSize(const std::string& fileName){
 	using namespace std;
 	
-	string commandLS = "ls -l | grep -E \'";
+  string commandLS = "ls -l | grep -E \'";
 	commandLS.append(fileName + "\' | awk \'{print $").append(colNameLS).append("\" \"$5}\'");
 	
-	FILE* pipe = popen(commandLS.c_str(), "r");
+  FILE* pipe = popen(commandLS.c_str(), "r");
 	char buffer[Master::FILE_NAME_SIZE];
 	stringstream ss;	
 	while(!feof(pipe)) {
