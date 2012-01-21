@@ -57,14 +57,23 @@ std::list<std::string> Slave::getChangedFiles(){
 
 void Slave::sendFinished() {
 	std::list<std::string> changedFiles = getChangedFiles();
-	//File_names
-	string allNames = "";
-	for(std::list<std::string>::iterator it = changedFiles.begin(); it != changedFiles.end(); it++){
-		allNames.append(*it + " ");
-	}
-	char allFileNames[Master::FILE_NAME_SIZE];
-	strcpy(allFileNames, allNames.substr(0, allNames.size()-1).c_str());
-	MPI_Send(allFileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, Master::RESPONSE_FILE_LIST_TAG, MPI_COMM_WORLD);
+	char* fileNames = getFilesAndSizes(changedFiles);
+
+	//File List	
+	MPI_Send(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, Master::SLAVE_FILE_NAME_TAG, MPI_COMM_WORLD);
+	
+	//Send Files
+	pair<char*, unsigned long> fileContent;
+	string fileName;
+	int size;
+	istringstream iss(fileNames);
+	
+	while(iss >> fileName){
+		iss >> size;
+		fileContent = readFile(fileName);
+		MPI_Send(fileContent.first, fileContent.second, MPI_BYTE, Master::ID	, Master::FILE_SEND_TAG, MPI_COMM_WORLD);
+	}	
+	
 }
 
 void Slave::receiveTask(const char command[]) {
@@ -95,6 +104,7 @@ void Slave::receiveTask(const char command[]) {
 		iss >> size;
 		buffer = (char *)malloc(size);
 		MPI_Recv(buffer, size, MPI_BYTE, Master::ID, Master::FILE_SEND_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		cout << "Received File " << fileName << endl;
 		writeFile(buffer, fileName);
 	}
 	

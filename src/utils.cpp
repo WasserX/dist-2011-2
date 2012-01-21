@@ -21,22 +21,23 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 				cout << "Error parsing Makefile" << endl;
 				return graph;
 			}
-			string nodeName = cleanWhiteSpaces(line.substr(0,found));
+			string nodeName = line.substr(0,found);
+			nodeName = trim(nodeName);
 			map<string, Node*>::iterator it = nodeMap.find(nodeName);
 			aNode = it == nodeMap.end() ? new Node(nodeName) : it->second;				
 			aNode->setRule(true);
 			//Dependencies
 			istringstream iss(line.substr(found+1));
 			while( iss >> aDep){
-				aDep = cleanWhiteSpaces(aDep);
+				aDep = trim(aDep);
 				retInsert = nodeMap.insert(pair<string,Node*>(aDep,new Node(aDep)));
 				aNode->addDependency();
 				aNode->addNeeds(retInsert.first->second);
 				retInsert.first->second->addResolves(aNode);
 			}
-			//Copy rule
+			//Command
 			getline(input, line);
-			aNode->setCommand(line);
+			aNode->setCommand(trim(line));
 			nodeMap.insert(pair<string,Node*>(aNode->getNodeName(),aNode));
 		}
 		input.close();
@@ -82,11 +83,9 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 	return graph;
 }
 
-string cleanWhiteSpaces(string str) {
-	unsigned int beg, end;
-	for(beg = 0; beg < str.length() && ( str[beg] == ' ' || str[beg] == 9 ); beg++);
-	for(end = beg; end < str.length() && str[end] != ' '; end++);
-	return str.substr(beg,end-beg);
+string& trim(string& str) {
+	str.erase(str.find_last_not_of(" \n\r\t")+1);
+	return str.erase(0,str.find_first_not_of(" \n\r\t"));
 }
 
 bool checkIfDepUpToDate(string ruleName, list<string> depNames){
@@ -149,13 +148,17 @@ void writeFile(char* buffer, std::string fileName) {
 
 char* getFilesAndSizes(const std::list<std::string>& fileNames){
 	using namespace std;
-	
+	char* files = (char*) malloc(Master::FILE_NAME_SIZE);
+	files[0] = '\0';
+	if(fileNames.empty())
+		return files;	
+
 	string commandLS = "ls -l | grep -E \'";
 	for(list<string>::const_iterator it = fileNames.begin(); it != fileNames.end(); it++)
 		if( !it->empty())
 			commandLS.append(*it).append("|");
-	commandLS.insert(commandLS.size()-1, "\' | awk \'{print $8\" \"$5}\'");
-	
+	commandLS[commandLS.size()-1] = '\'';
+	commandLS.append(" | awk \'{print $8\" \"$5}\'");
 	FILE* pipe = popen(commandLS.c_str(), "r");
 	char buffer[Master::FILE_NAME_SIZE];
 	stringstream ss;	
@@ -172,7 +175,6 @@ char* getFilesAndSizes(const std::list<std::string>& fileNames){
 			ss >> output;
 			filesToSend += output;
 	}
-	char files[Master::FILE_NAME_SIZE];
 	return strcpy(files, filesToSend.substr(0,filesToSend.size()-1).c_str());
 }
 

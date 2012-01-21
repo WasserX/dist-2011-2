@@ -13,8 +13,11 @@ Master::Master(std::vector<Node*> graph, std::list<int> resources){
 	
 	availableResources = resources;
 	this->resources = resources;
-	for(list<int>::iterator it = availableResources.begin(); it != availableResources.end(); it++)
+	for(list<int>::iterator it = availableResources.begin(); it != availableResources.end(); it++){
 		filesInResource.insert(pair<int, list<string>* >(*it, new list<string>()));
+		requests.insert(pair<int, MPI_Request*>(*it, new MPI_Request()));
+		rcvBuffers.insert(pair<int, char*>(*it, (char*) malloc (FILE_NAME_SIZE)));
+	}
 
 	updateReadyToCompute();
 }
@@ -64,7 +67,7 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	//File List
 	char *files = getFormattedFilesToSend(target, command, input.second);
 	MPI_Send(files, FILE_NAME_SIZE, MPI_BYTE, target, FILE_NAME_TAG, MPI_COMM_WORLD);
-
+	
 	//Send Files
 	pair<char*, unsigned long> fileContent;
 	string fileName;
@@ -83,6 +86,7 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 		MPI_Send(fileContent.first, fileContent.second, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);
 	}	
 
+
 	//Mark files as available in resource
 	//input.second will be DESTROYED
 	list<string>* fRes = filesInResource.find(target)->second;
@@ -96,22 +100,14 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	readyToCompute.remove(input.first);
 	
 	//Waits first part of answer async
-	map<int, MPI_Request*>::iterator ptRequests = requests.find(target);
-	if( ptRequests == requests.end() )
-		ptRequests = requests.insert(pair<int, MPI_Request*>(target, new MPI_Request())).first;
-	
-	map<int, char*>::iterator ptBuffers = rcvBuffers.find(target);
-	if( ptBuffers == rcvBuffers.end() )
-		ptBuffers = rcvBuffers.insert(pair<int, char*>(target,(char*) malloc (FILE_NAME_SIZE))).first;
-	MPI_Irecv(ptBuffers->second, FILE_NAME_SIZE, MPI_BYTE, target, 
-		RESPONSE_FILE_LIST_TAG, MPI_COMM_WORLD, ptRequests->second);
+	MPI_Irecv(rcvBuffers.find(target)->second, FILE_NAME_SIZE, MPI_BYTE, target, 
+		SLAVE_FILE_NAME_TAG, MPI_COMM_WORLD, requests.find(target)->second);
 }
 
 void Master::receiveFinished() {
 	using namespace std;
 
 	map<int, MPI_Request*>::iterator ptRequest;
-	MPI_Status status;
 	int flag = 0;
 	bool once = false;
 		
@@ -119,17 +115,29 @@ void Master::receiveFinished() {
 		flag = false;
 		ptRequest = requests.find(mapIt->first);
 		if( ptRequest != requests.end() )
-			MPI_Test(ptRequest->second, &flag, &status);
+			MPI_Test(ptRequest->second, &flag, MPI_STATUS_IGNORE);
 		if(flag){
-			//Should get the files
+			
+			//Getting Files
+			string fileName;
+			int size;
+			char* buffer;
+			istringstream iss(rcvBuffers.find(mapIt->first)->second);
+			while(iss >> fileName){
+				iss >> size;
+				buffer = (char *)malloc(size);
+				MPI_Recv(buffer, size, MPI_BYTE, mapIt->first, FILE_SEND_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+				writeFile(buffer, fileName);
+			}
 			
 			//Updating Graph
 			mapIt->second->setFinished();
-			istringstream iss(rcvBuffers.find(ptRequest->first)->second);
+			iss.clear();
+			iss.str(rcvBuffers.find(mapIt->first)->second);
 			string file;
 			list<string> files;
 			while( iss >> file)
-				files.push_back(cleanWhiteSpaces(file));
+				files.push_back(trim(file));
 			
 			list<Node*> depended = mapIt->second->getResolves();
 			list<string>::iterator termBeginIt;
@@ -174,8 +182,10 @@ char* Master::getFormattedFilesToSend(int target, const std::string& command, co
 		exec.assign(getFileAndSize(exec)).append(" ");
 		exec.insert(0, "1 ");
 	}
-	else
+	else if (!filesToSend.empty())
 		exec.insert(0, "0 ");
+	else
+		exec.insert(0, "0");
 	
 	filesToSend.insert(0,exec);
 
