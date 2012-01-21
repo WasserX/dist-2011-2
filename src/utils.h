@@ -22,7 +22,7 @@
 using namespace std;
 
 pair<char*, unsigned long> readFile(std::string fileName);
-void writeFile(char* buffer, std::string fileName);
+void writeFile(char* buffer, int size, std::string fileName);
 bool checkIfDepUpToDate(string ruleName, list<string> depNames);
 string& trim(string& str);
 vector<Node*> parseFile(string fileName, string startingRule);

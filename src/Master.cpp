@@ -127,7 +127,7 @@ void Master::receiveFinished() {
 				iss >> size;
 				buffer = (char *)malloc(size);
 				MPI_Recv(buffer, size, MPI_BYTE, mapIt->first, FILE_SEND_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-				writeFile(buffer, fileName);
+				writeFile(buffer, size, fileName);
 			}
 			
 			//Updating Graph

@@ -95,7 +95,7 @@ void Slave::receiveTask(const char command[]) {
 		iss >> fileName >> size;
 		buffer = (char *)malloc(size);
 		MPI_Recv(buffer, size, MPI_BYTE, Master::ID, Master::FILE_SEND_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		writeFile(buffer, fileName);
+		writeFile(buffer, size, fileName);
 		string permissionCommand = "chmod +x ";
 		system(permissionCommand.append(fileName).c_str());
 	}
@@ -104,8 +104,7 @@ void Slave::receiveTask(const char command[]) {
 		iss >> size;
 		buffer = (char *)malloc(size);
 		MPI_Recv(buffer, size, MPI_BYTE, Master::ID, Master::FILE_SEND_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		cout << "Received File " << fileName << endl;
-		writeFile(buffer, fileName);
+		writeFile(buffer, size, fileName);
 	}
 	
 	std::string touchCommand = "touch ";

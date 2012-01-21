@@ -139,11 +139,11 @@ pair<char*, unsigned long> readFile(std::string fileName) {
 	return pair<char*, unsigned long>(content, fileLen);
 }
 
-void writeFile(char* buffer, std::string fileName) {
-	ofstream file;
-  	file.open(fileName.c_str());
-  	file << buffer;
-  	file.close();	
+void writeFile(char* buffer, int size, std::string fileName) {
+	FILE* fp;
+	fp = fopen(fileName.c_str(), "w+b");
+	fwrite(buffer, sizeof(char), size, fp);
+	fclose(fp);
 }
 
 char* getFilesAndSizes(const std::list<std::string>& fileNames){
@@ -175,7 +175,7 @@ char* getFilesAndSizes(const std::list<std::string>& fileNames){
 			ss >> output;
 			filesToSend += output;
 	}
-	return strcpy(files, filesToSend.substr(0,filesToSend.size()-1).c_str());
+	return strcpy(files, filesToSend.c_str());
 }
 
 char* getFileAndSize(const std::string& fileName){
