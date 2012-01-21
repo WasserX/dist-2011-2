@@ -72,13 +72,14 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	
 	//Send Files
 	pair<char*, unsigned long> fileContent;
-	string fileName;
+	string fileName, execName;
 	int size, sendExec = 0;
 	istringstream iss(files);
 	
 	iss >> sendExec;
 	if(sendExec){
 		iss >> fileName >> size;
+    execName = fileName;
 		fileContent = readFile(fileName);
 		MPI_Send(fileContent.first, fileContent.second, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);
 	}
@@ -93,7 +94,7 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	//input.second will be DESTROYED
 	list<string>* fRes = filesInResource.find(target)->second;
 	fRes->splice(fRes->begin(), input.second);
-
+  if ( sendExec ) fRes->push_back(execName);
 	//Add to computing
 	computing.insert(std::pair<int, Node*>(target, input.first));
 	input.first->setComputing();
@@ -124,9 +125,11 @@ void Master::receiveFinished() {
 			string fileName;
 			int size;
 			char* buffer;
+			list<string> fileNames;
 			istringstream iss(rcvBuffers.find(mapIt->first)->second);
 			while(iss >> fileName){
-				iss >> size;
+				fileNames.push_back(fileName);
+        iss >> size;
 				buffer = (char *)malloc(size);
 				MPI_Recv(buffer, size, MPI_BYTE, mapIt->first, FILE_SEND_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 				writeFile(buffer, size, fileName);
@@ -134,18 +137,12 @@ void Master::receiveFinished() {
 			
 			//Updating Graph
 			mapIt->second->setFinished();
-			iss.clear();
-			iss.str(rcvBuffers.find(mapIt->first)->second);
-			string file;
-			list<string> files;
-			while( iss >> file)
-				files.push_back(trim(file));
 			
 			list<Node*> depended = mapIt->second->getResolves();
 			list<string>::iterator termBeginIt;
 			for(list<Node*>::iterator it = depended.begin(); it != depended.end(); it++){
 				(*it)->remDependency();
-				for(list<string>::iterator itFile = files.begin(); itFile != files.end(); itFile++)
+				for(list<string>::iterator itFile = fileNames.begin(); itFile != fileNames.end(); itFile++)
 					(*it)->addTerminal(*itFile);
 			}
 			
@@ -155,7 +152,7 @@ void Master::receiveFinished() {
 			
 			//Updating files it contains
 			list<string>* res = filesInResource.find(mapIt->first)->second;
-			res->splice(res->begin(),files);
+			res->splice(res->begin(),fileNames);
 
 			once = true;
 			flag= 0;
