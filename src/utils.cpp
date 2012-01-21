@@ -170,7 +170,7 @@ char* getFilesAndSizes(const std::list<std::string>& fileNames){
 		if( !it->empty())
 			commandLS.append(*it).append("|");
 	commandLS[commandLS.size()-1] = '\'';
-	commandLS.append(" | awk \'{print $8\" \"$5}\'");
+	commandLS.append(" | awk \'{print $").append(colNameLS).append("\" \"$5}\'");
 	FILE* pipe = popen(commandLS.c_str(), "r");
 	char buffer[Master::FILE_NAME_SIZE];
 	stringstream ss;	
@@ -194,7 +194,7 @@ char* getFileAndSize(const std::string& fileName){
 	using namespace std;
 	
 	string commandLS = "ls -l | grep -E \'";
-	commandLS.append(fileName + "\' | awk \'{print $8\" \"$5}\'");
+	commandLS.append(fileName + "\' | awk \'{print $").append(colNameLS).append("\" \"$5}\'");
 	
 	FILE* pipe = popen(commandLS.c_str(), "r");
 	char buffer[Master::FILE_NAME_SIZE];

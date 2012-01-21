@@ -19,6 +19,13 @@
 //For Directory checking
 #include <dirent.h>
 
+//Dependant of target system
+#ifdef UBUNTU
+const static char colNameLS[] = "8";
+#elif defined REDHAT
+const static char colNameLS[] = "9";
+#endif
+
 using namespace std;
 
 pair<char*, unsigned long> readFile(std::string fileName);
