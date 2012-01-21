@@ -44,6 +44,8 @@ void Master::execute(){
 	int finish = 1;
 	for(list<int>::iterator it = resources.begin(); it != resources.end(); it++)
 		MPI_Send(&finish, FINISH_SIZE, MPI_INT, *it, FINISH_TAG, MPI_COMM_WORLD);
+
+  cout << "Master Finished" <<endl;
 }
 
 void Master::updateReadyToCompute(){

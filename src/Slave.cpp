@@ -17,6 +17,7 @@ Slave::Slave(int rank) {
 
 Slave::~Slave() {
 	cleanUp();
+  cout << "Slave " << id << " Finished" << endl;
 }
 
 void Slave::changeDir(){

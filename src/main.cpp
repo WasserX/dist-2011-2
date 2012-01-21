@@ -29,11 +29,13 @@ int main(int argc, char **argv) {
 		}
 		Master* master = new Master( parseFile("./Makefile", rule), listIds);
 		master->execute();
+    delete master;
 	}
 	else {
 		Slave* slave = new Slave(rank);
 		slave->execute();
-	}
+	  delete slave;
+  }
 	MPI_Finalize();  /* EXIT MPI */
 	return 0;
 }

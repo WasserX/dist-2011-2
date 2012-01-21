@@ -56,8 +56,7 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 		nodeMap.clear();
 
 		while(!toAnalize.empty()){
-			n = toAnalize.front();
-			toAnalize.pop_front();
+			n = toAnalize.front(); toAnalize.pop_front();
 			nodeMap.insert(pair<string,Node*>(n->getNodeName(), n));
 			toAnalize.splice(toAnalize.begin(), n->getNeeds());
 		}
@@ -76,10 +75,23 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 		graph.push_back(itMap->second);
 	}
 
-	for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++){
-		if(checkIfDepUpToDate((*it)->getNodeName(), (*it)->getTerminals()))
-			(*it)->setFinished();
-	}
+  //For treating up to date rules
+  list<Node*> toAnalize;
+	Node* n;
+  for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++)
+		if((*it)->isReady() && checkIfDepUpToDate((*it)->getNodeName(), (*it)->getTerminals()))
+      toAnalize.push_back(*it);
+  
+  while( !toAnalize.empty() ){
+    n = toAnalize.front(); toAnalize.pop_front();
+    n->setFinished();
+    for(list<Node*>::const_iterator it = n->getResolves().begin(); it != n->getResolves().end(); it++){ 
+      (*it)->addTerminal(n->getNodeName());
+			(*it)->remDependency();
+      if((*it)->isReady() && checkIfDepUpToDate((*it)->getNodeName(), (*it)->getTerminals()))
+        toAnalize.push_back(*it);
+   }    
+  }
 	return graph;
 }
 
