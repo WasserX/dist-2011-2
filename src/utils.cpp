@@ -13,7 +13,8 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 		string aDep;
 		size_t found;
 		while (getline (input, line)){
-			if(line.empty())
+			line = trim(line);
+      if(line.empty() || line[0] == '#')
 				continue;
 			//Rule
 			found = line.find_first_of(":");
