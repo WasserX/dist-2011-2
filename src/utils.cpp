@@ -23,7 +23,8 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 			}
 			string nodeName = line.substr(0,found);
 			nodeName = trim(nodeName);
-			map<string, Node*>::iterator it = nodeMap.find(nodeName);
+			if (startingRule.empty()) startingRule = nodeName;
+      map<string, Node*>::iterator it = nodeMap.find(nodeName);
 			aNode = it == nodeMap.end() ? new Node(nodeName) : it->second;				
 			aNode->setRule(true);
 			//Dependencies
@@ -43,23 +44,21 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 		input.close();
 	}
 
-	if(!startingRule.empty()){
-		map<string, Node*>::iterator it = nodeMap.find(startingRule);
-		if ( it == nodeMap.end() ){
-			cout << "Error finding rule passed" << endl;
-			return graph;
-		}
-		list<Node*> toAnalize;
-		Node* n;
-		
-		toAnalize.push_back(it->second);
-		nodeMap.clear();
+	map<string, Node*>::iterator it = nodeMap.find(startingRule);
+	if ( it == nodeMap.end() ){
+		cout << "Error finding rule passed" << endl;
+		return graph;
+	}
+	list<Node*> toAnalize;
+	Node* n;
+	
+	toAnalize.push_back(it->second);
+	nodeMap.clear();
 
-		while(!toAnalize.empty()){
-			n = toAnalize.front(); toAnalize.pop_front();
-			nodeMap.insert(pair<string,Node*>(n->getNodeName(), n));
-			toAnalize.splice(toAnalize.begin(), n->getNeeds());
-		}
+	while(!toAnalize.empty()){
+		n = toAnalize.front(); toAnalize.pop_front();
+		nodeMap.insert(pair<string,Node*>(n->getNodeName(), n));
+		toAnalize.splice(toAnalize.begin(), n->getNeeds());
 	}
 
 	list<Node*> resolves;
