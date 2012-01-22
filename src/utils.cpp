@@ -44,15 +44,15 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 		input.close();
 	}
 
-	map<string, Node*>::iterator it = nodeMap.find(startingRule);
-	if ( it == nodeMap.end() ){
+	map<string, Node*>::iterator itNodeMap = nodeMap.find(startingRule);
+	if ( itNodeMap == nodeMap.end() ){
 		cout << "Error finding rule passed" << endl;
 		return graph;
 	}
 	list<Node*> toAnalize;
 	Node* n;
 	
-	toAnalize.push_back(it->second);
+	toAnalize.push_back(itNodeMap->second);
 	nodeMap.clear();
 
 	while(!toAnalize.empty()){
@@ -75,8 +75,7 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 	}
 
   //For treating up to date rules
-  list<Node*> toAnalize;
-	Node* n;
+  toAnalize.clear();
   for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++)
 		if((*it)->isReady() && checkIfDepUpToDate((*it)->getNodeName(), (*it)->getTerminals()))
       toAnalize.push_back(*it);
