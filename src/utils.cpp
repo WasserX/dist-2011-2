@@ -151,12 +151,12 @@ char* getFilesAndSizes(const std::list<std::string>& fileNames){
 	if(fileNames.empty())
 		return files;	
 
-	string commandLS = "ls -l | grep -E \'";
+	string commandLS = "ls -l | awk \'{print $";
+  commandLS.append(colNameLS).append("\" \"$5}\' | grep -w \'");
 	for(list<string>::const_iterator it = fileNames.begin(); it != fileNames.end(); it++)
 		if( !it->empty())
 			commandLS.append(*it).append("|");
 	commandLS[commandLS.size()-1] = '\'';
-	commandLS.append(" | awk \'{print $").append(colNameLS).append("\" \"$5}\'");
 	FILE* pipe = popen(commandLS.c_str(), "r");
 	char buffer[Master::FILE_NAME_SIZE];
 	stringstream ss;	
@@ -179,8 +179,8 @@ char* getFilesAndSizes(const std::list<std::string>& fileNames){
 char* getFileAndSize(const std::string& fileName){
 	using namespace std;
 	
-  string commandLS = "ls -l | grep -E \'";
-	commandLS.append(fileName + "\' | awk \'{print $").append(colNameLS).append("\" \"$5}\'");
+	string commandLS = "ls -l | awk \'{print $";
+  commandLS.append(colNameLS).append("\" \"$5}\' | grep -w \'").append(fileName).append("\'");
 	
   FILE* pipe = popen(commandLS.c_str(), "r");
 	char buffer[Master::FILE_NAME_SIZE];
