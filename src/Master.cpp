@@ -62,14 +62,22 @@ void Master::execute(){
   #endif
 }
 
-void Master::updateReadyToCompute(){
+void Master::updateReadyToCompute(Node* changed){
 	using namespace std;
-	readyToCompute.clear();
-	
-	for(list<Node*>::iterator it = graph.begin(); it != graph.end(); it++){
-		if((*it)->isReady() && !(*it)->isFinished() && !(*it)->isComputing())
-			readyToCompute.push_back(*it);
-	}
+
+  if(changed){
+    readyToCompute.remove(changed);
+    for(list<Node*>::const_iterator it = changed->getResolves().begin(); it != changed->getResolves().end(); it++)
+      if((*it)->isReady() && !(*it)->isFinished())
+        readyToCompute.push_back(*it);
+    readyToCompute.remove(changed);
+  }else{
+    readyToCompute.clear();
+	  for(list<Node*>::iterator it = graph.begin(); it != graph.end(); it++){
+		  if((*it)->isReady() && !(*it)->isFinished() && !(*it)->isComputing())
+			  readyToCompute.push_back(*it);
+	  }
+  }
 }
 
 void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int target) {
@@ -138,7 +146,6 @@ void Master::receiveFinished() {
 
 	map<int, MPI_Request*>::iterator ptRequest;
 	int flag = 0;
-	bool once = false;
 		
 	for(map<int, Node*>::iterator mapIt = computing.begin(); mapIt != computing.end(); mapIt++){
 		flag = false;
@@ -180,12 +187,10 @@ void Master::receiveFinished() {
 			list<string>* res = filesInResource.find(mapIt->first)->second;
 			res->splice(res->begin(),fileNames);
 
-			once = true;
 			flag= 0;
+      updateReadyToCompute(mapIt->second);
 		} 
 	}
-	if(once)
-		updateReadyToCompute();
 }
 
 //Terminals: Structure: "(0|1 executableFile) (fileName)*"
