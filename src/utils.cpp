@@ -53,18 +53,17 @@ list<Node*> parseFile(string fileName, string startingRule) {
 	list<Node*> toAnalize;
 	Node* n;
 	toAnalize.push_back(itNodeMap->second);
-	while(!toAnalize.empty()){
+	nodeMap.clear();
+  while(!toAnalize.empty()){
 		n = toAnalize.front(); toAnalize.pop_front();
-    graph.push_back(n);
+    nodeMap.insert(pair<string, Node*>(n->getNodeName(), n));
     toAnalize.splice(toAnalize.begin(), n->getNeeds());
 	}
 
 	list<Node*> resolves;
-  //For treating up to date rules
-  toAnalize.clear();
-  for(list<Node*>::iterator it = graph.begin(); it != graph.end(); it++)
-		if((*it)->isReady() && checkIfDepUpToDate((*it)->getNodeName(), (*it)->getTerminals()))
-      toAnalize.push_back(*it);
+  for(map<string,Node*>::iterator it = nodeMap.begin(); it != nodeMap.end(); it++)
+		if( !it->second->isRule())
+      toAnalize.push_back(it->second);
   
   while( !toAnalize.empty() ){
     n = toAnalize.front(); toAnalize.pop_front();
@@ -72,11 +71,14 @@ list<Node*> parseFile(string fileName, string startingRule) {
     for(list<Node*>::const_iterator it = n->getResolves().begin(); it != n->getResolves().end(); it++){ 
       (*it)->addTerminal(n->getNodeName());
 			(*it)->remDependency();
-      if((*it)->isReady() && checkIfDepUpToDate((*it)->getNodeName(), (*it)->getTerminals()))
+      if((*it)->isReady() && !(*it)->isFinished() && checkIfDepUpToDate((*it)->getNodeName(), (*it)->getTerminals()))
         toAnalize.push_back(*it);
    }    
   }
-	return graph;
+
+  for(map<string,Node*>::iterator it = nodeMap.begin(); it != nodeMap.end(); it++)	
+	  graph.push_back(it->second);
+  return graph;
 }
 
 string& trim(string& str) {
