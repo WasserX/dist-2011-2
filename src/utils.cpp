@@ -59,22 +59,11 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 	while(!toAnalize.empty()){
 		n = toAnalize.front(); toAnalize.pop_front();
 		nodeMap.insert(pair<string,Node*>(n->getNodeName(), n));
-		toAnalize.splice(toAnalize.begin(), n->getNeeds());
+		graph.push_back(n);
+    toAnalize.splice(toAnalize.begin(), n->getNeeds());
 	}
 
 	list<Node*> resolves;
-	for(map<string,Node*>::iterator itMap = nodeMap.begin(); itMap != nodeMap.end(); itMap++) {
-		resolves = itMap->second->getResolves();
-		//If it's a terminal update
-		if(!itMap->second->isRule()){
-			for(list<Node*>::iterator itList = resolves.begin(); itList != resolves.end(); itList++){ 
-				(*itList)->addTerminal(itMap->second->getNodeName());
-				(*itList)->remDependency();
-			}
-		}
-		graph.push_back(itMap->second);
-	}
-
   //For treating up to date rules
   toAnalize.clear();
   for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++)
