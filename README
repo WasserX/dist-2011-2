@@ -1,8 +1,12 @@
 A distributed (simplified) Make implementation for the Distributed Systems Course 2011/2
 Doesn't depend on NFS, process communication using MPI.
 
-There is a master process (modeled after the Master class) and others that execute tasks (modeled after Slave)
-
 Prerequisites:
 1. OpenMPI and libraries for compiling. In ubuntu:
 	sudo apt-get install openmpi-dev openmpi-bin
+
+2. If you are using RedHat/ archlinux or any other distro that has an ls with more parameters than normal, change TARGET in makefile to REDHAT
+
+Instructions:
+execute 'mpirun -np <n> distMake' in the folder where the Makefile is (filename is fixed)
+where n>2 is the number of process that will be created (one is needed to control the others)

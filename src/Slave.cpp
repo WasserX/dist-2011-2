@@ -8,8 +8,6 @@
 
 #include "Slave.h"
 
-const char* Slave::FILE_CHECKPOINT = "___FILE_CHECKPOINT___";
-
 Slave::Slave(int rank) {
 	id = rank;
 	changeDir();
@@ -17,7 +15,9 @@ Slave::Slave(int rank) {
 
 Slave::~Slave() {
 	cleanUp();
+  #ifdef DEBUG  
   cout << "Slave " << id << " Finished" << endl;
+  #endif
 }
 
 void Slave::changeDir(){
@@ -99,9 +99,11 @@ void Slave::receiveTask(const char command[]) {
 	char fileNames[Master::FILE_NAME_SIZE];
 	MPI_Recv(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, 
 	 Master::FILE_NAME_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE); //Receive Terminals
-	 
-	std::cout << "Slave " << id << " received command: " << command << endl;
 	
+  #ifdef DEBUG
+	std::cout << "Slave " << id << " received command: " << command << endl;
+  #endif
+
 	string fileName;
 	int size, receivedExec = 0;
 	char* buffer;	

@@ -19,6 +19,9 @@ Master::Master(std::list<Node*> graph, std::list<int> resources){
 		rcvBuffers.insert(pair<int, char*>(*it, (char*) malloc (FILE_NAME_SIZE)));
 	}
 
+  #if defined COUNT_MESSAGES || defined COUNT_FILE_MESSAGES
+  messageCounter = 0;
+  #endif
 	updateReadyToCompute();
 }
 
@@ -29,8 +32,10 @@ void Master::execute(){
 		if ( !readyToCompute.empty() && !availableResources.empty() ) {
 			//If it's the last rule (all, or something) execute locally
 			if(readyToCompute.size() == 1 && readyToCompute.front()->getResolves().empty()){
-				cout << "Master executing task " << readyToCompute.front()->getNodeName() << endl;
-				system(readyToCompute.front()->getCommand().c_str());
+        #ifdef DEBUG
+        cout << "Master executing task " << readyToCompute.front()->getNodeName() << endl;
+        #endif
+        system(readyToCompute.front()->getCommand().c_str());
 				readyToCompute.front()->setFinished();
 				readyToCompute.pop_front();
 			}
@@ -42,10 +47,19 @@ void Master::execute(){
 	} while( !readyToCompute.empty() || !computing.empty() );
 
 	int finish = 1;
-	for(list<int>::iterator it = resources.begin(); it != resources.end(); it++)
+	for(list<int>::iterator it = resources.begin(); it != resources.end(); it++){
 		MPI_Send(&finish, FINISH_SIZE, MPI_INT, *it, FINISH_TAG, MPI_COMM_WORLD);
-
+    #ifdef COUNT_MESSAGES
+    messageCounter++;
+    #endif
+  }
+  #ifdef DEBUG
   cout << "Master Finished" <<endl;
+  #endif
+
+  #if defined COUNT_MESSAGES || defined COUNT_FILE_MESSAGES
+  cout << "Total Messages Sent: " << messageCounter << endl;
+  #endif
 }
 
 void Master::updateReadyToCompute(){
@@ -65,12 +79,18 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	char command[COMMAND_SIZE];
 	strcpy(command, input.first->getCommand().c_str());
 	MPI_Send(command, COMMAND_SIZE, MPI_BYTE, target, COMMAND_TAG, MPI_COMM_WORLD);
-	
+  #ifdef COUNT_MESSAGES
+  messageCounter++;
+  #endif
+
 	//File List
   input.second.sort();
 	char *files = getFormattedFilesToSend(target, command, input.second);
 	MPI_Send(files, FILE_NAME_SIZE, MPI_BYTE, target, FILE_NAME_TAG, MPI_COMM_WORLD);
-	
+	#ifdef COUNT_MESSAGES
+  messageCounter++;
+  #endif
+
 	//Send Files
 	pair<char*, unsigned long> fileContent;
 	string fileName, execName;
@@ -83,13 +103,18 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
     execName = fileName;
 		fileContent = readFile(fileName);
 		MPI_Send(fileContent.first, fileContent.second, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);
-	}
+	  #if defined COUNT_MESSAGES || defined COUNT_FILE_MESSAGES
+    messageCounter++;
+    #endif
+  }
 	while(iss >> fileName){
 		iss >> size;
 		fileContent = readFile(fileName);
 		MPI_Send(fileContent.first, fileContent.second, MPI_BYTE, target, FILE_SEND_TAG, MPI_COMM_WORLD);
-	}	
-
+		#if defined COUNT_MESSAGES || defined COUNT_FILE_MESSAGES
+    messageCounter++;
+    #endif
+  }	
 
 	//Mark files as available in resource
 	//input.second will be DESTROYED
@@ -215,15 +240,18 @@ std::pair<Node*, std::list<std::string> > Master::nextNode(int id){
 	list<string>* inProcess = filesInResource.find(id)->second;
 	inProcess->sort();
 	list<string> other;
+  
+  #ifdef NO_HEURISTICS
+		other = readyToCompute.front()->getTerminals();
+		other.sort();
+		other = diffLists(other, *inProcess);
+    return pair<Node*, list<string> >(readyToCompute.front(), other);
+  #endif
 
 	unsigned int bestDistance = INF;
 	Node* selected;
 	for(list<Node*>::iterator it = readyToCompute.begin(); it != readyToCompute.end(); it++)
 	{
-
-		if ((*it)->isFinished()) //This eliminates the terminals that are always ready
-			continue;
-
 		other = (*it)->getTerminals();
 		other.sort();
 		other = diffLists(other, *inProcess);

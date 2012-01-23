@@ -51,6 +51,9 @@ private:
 
 	const static int INF = 99999;
 
+  #ifdef COUNT_MESSAGES
+  int messageCounter;
+  #endif
 	std::list<Node*> graph;
 	std::list<int> resources;
 	std::map<int, std::list<std::string>* > filesInResource; //For each resource a list of files that already has
