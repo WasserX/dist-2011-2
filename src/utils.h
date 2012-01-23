@@ -33,8 +33,8 @@ void writeFile(char* buffer, int size, std::string fileName);
 bool checkIfDepUpToDate(string ruleName, list<string> depNames);
 string& trim(string& str);
 list<Node*> parseFile(string fileName, string startingRule);
+std::string getFormattedLS();
 char* getFilesAndSizes(const std::list<std::string>& fileNames);
-char* getFileAndSize(const std::string& fileName);
 std::list<std::string>& diffLists(std::list<std::string>& base, const std::list<std::string>& toCompare);
 
 #endif //UTILS_H

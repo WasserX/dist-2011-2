@@ -58,7 +58,8 @@ std::list<std::string> Slave::getChangedFiles(){
 
 void Slave::sendFinished() {
 	std::list<std::string> changedFiles = getChangedFiles();
-	char* fileNames = getFilesAndSizes(changedFiles);
+	changedFiles.sort();
+  char* fileNames = getFilesAndSizes(changedFiles);
 
 	//File List	
 	MPI_Send(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, Master::SLAVE_FILE_NAME_TAG, MPI_COMM_WORLD);

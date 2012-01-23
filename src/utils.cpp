@@ -144,44 +144,9 @@ void writeFile(char* buffer, int size, std::string fileName) {
 	fclose(fp);
 }
 
-char* getFilesAndSizes(const std::list<std::string>& fileNames){
-	using namespace std;
-	char* files = (char*) malloc(Master::FILE_NAME_SIZE);
-	files[0] = '\0';
-	if(fileNames.empty())
-		return files;	
-
+std::string getFormattedLS(){
 	string commandLS = "ls -l | awk \'{print $";
-  commandLS.append(colNameLS).append("\" \"$5}\' | grep -w \'");
-	for(list<string>::const_iterator it = fileNames.begin(); it != fileNames.end(); it++)
-		if( !it->empty())
-			commandLS.append(*it).append("|");
-	commandLS[commandLS.size()-1] = '\'';
-	FILE* pipe = popen(commandLS.c_str(), "r");
-	char buffer[Master::FILE_NAME_SIZE];
-	stringstream ss;	
-	while(!feof(pipe)) {
-		if(fgets(buffer, Master::FILE_NAME_SIZE, pipe) != NULL)
-			ss << buffer;
-	}	
-	pclose(pipe);
-	
-	string output;
-	string filesToSend;
-	while( ss >> output){
-			filesToSend.append(" ").append(output + " ");
-			ss >> output;
-			filesToSend += output;
-	}
-	return strcpy(files, filesToSend.c_str());
-}
-
-char* getFileAndSize(const std::string& fileName){
-	using namespace std;
-	
-	string commandLS = "ls -l | awk \'{print $";
-  commandLS.append(colNameLS).append("\" \"$5}\' | grep -w \'").append(fileName).append("\'");
-	
+  commandLS.append(colNameLS).append("\" \"$5}\'");
   FILE* pipe = popen(commandLS.c_str(), "r");
 	char buffer[Master::FILE_NAME_SIZE];
 	stringstream ss;	
@@ -190,16 +155,32 @@ char* getFileAndSize(const std::string& fileName){
 			ss << buffer;
 	}	
 	pclose(pipe);
+  return ss.str(); 
+}
 
-	string output;
-	string toReturn;
-	while( ss >> output){
-		toReturn += output + " ";
-		ss >> output;
-		toReturn += output;
+char* getFilesAndSizes(const std::list<std::string>& fileNames){
+	using namespace std;
+	char* files = (char*) malloc(Master::FILE_NAME_SIZE);
+	files[0] = '\0';
+	if(fileNames.empty())
+		return files;	
+
+  stringstream ss;
+  ss << getFormattedLS();
+  string output;
+	string filesToSend;
+  list<string>::const_iterator it = fileNames.begin();
+  while( ss >> output && it != fileNames.end()){
+    if(!output.compare(*it)){
+			filesToSend.append(" ").append(output + " ");
+			ss >> output;
+			filesToSend += output;
+      it++;
+    }else{
+      ss >> output;
+    }
 	}
-	char toReturnChar[toReturn.size()+1];
-	return strcpy(toReturnChar, toReturn.c_str());
+	return strcpy(files, filesToSend.c_str());
 }
 
 /*

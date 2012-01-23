@@ -67,6 +67,7 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	MPI_Send(command, COMMAND_SIZE, MPI_BYTE, target, COMMAND_TAG, MPI_COMM_WORLD);
 	
 	//File List
+  input.second.sort();
 	char *files = getFormattedFilesToSend(target, command, input.second);
 	MPI_Send(files, FILE_NAME_SIZE, MPI_BYTE, target, FILE_NAME_TAG, MPI_COMM_WORLD);
 	
@@ -178,7 +179,9 @@ char* Master::getFormattedFilesToSend(int target, const std::string& command, co
 
 	string filesToSend(getFilesAndSizes(terminals));
 	if( !exec.empty()){
-		exec.assign(getFileAndSize(exec)).append(" ");
+		list<string> execList;
+    execList.push_back(exec);
+    exec.assign(getFilesAndSizes(execList)).append(" ");
 		exec.insert(0, "1 ");
 	}
 	else if (!filesToSend.empty())
