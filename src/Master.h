@@ -42,7 +42,7 @@ public:
 	const static int FINISH_TAG = 104;
 
 private:
-	void updateReadyToCompute();
+	void updateReadyToCompute(Node* changed=NULL);
 	std::string getExecutableFromCommand(const std::string command);
 	char* getFormattedFilesToSend(int target, const std::string& command, const std::list<std::string>& terminals);
 	void sendTask(std::pair<Node*, std::list<std::string> > input, int target);
@@ -51,7 +51,7 @@ private:
 
 	const static int INF = 99999;
 
-  #ifdef COUNT_MESSAGES
+  #if defined COUNT_MESSAGES || defined COUNT_FILE_MESSAGES
   int messageCounter;
   #endif
 	std::list<Node*> graph;
