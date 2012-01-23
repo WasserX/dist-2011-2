@@ -7,7 +7,7 @@
 
 #include "Master.h"
 
-Master::Master(std::vector<Node*> graph, std::list<int> resources){
+Master::Master(std::list<Node*> graph, std::list<int> resources){
 	using namespace std;
 	this->graph = graph;
 	
@@ -52,7 +52,7 @@ void Master::updateReadyToCompute(){
 	using namespace std;
 	readyToCompute.clear();
 	
-	for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++){
+	for(list<Node*>::iterator it = graph.begin(); it != graph.end(); it++){
 		if((*it)->isReady() && !(*it)->isFinished() && !(*it)->isComputing())
 			readyToCompute.push_back(*it);
 	}

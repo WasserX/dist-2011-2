@@ -23,9 +23,9 @@
 
 class Master {
 public:
-	Master(std::vector<Node*> graph, std::list<int> resources);
+	Master(std::list<Node*> graph, std::list<int> resources);
 	virtual ~Master() {
-		for(std::vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++)
+		for(std::list<Node*>::iterator it = graph.begin(); it != graph.end(); it++)
 			delete *it;
 	}
 	void execute();
@@ -51,7 +51,7 @@ private:
 
 	const static int INF = 99999;
 
-	std::vector<Node*> graph;
+	std::list<Node*> graph;
 	std::list<int> resources;
 	std::map<int, std::list<std::string>* > filesInResource; //For each resource a list of files that already has
 	std::list<Node*> readyToCompute;

@@ -32,7 +32,7 @@ pair<char*, unsigned long> readFile(std::string fileName);
 void writeFile(char* buffer, int size, std::string fileName);
 bool checkIfDepUpToDate(string ruleName, list<string> depNames);
 string& trim(string& str);
-vector<Node*> parseFile(string fileName, string startingRule);
+list<Node*> parseFile(string fileName, string startingRule);
 char* getFilesAndSizes(const std::list<std::string>& fileNames);
 char* getFileAndSize(const std::string& fileName);
 std::list<std::string>& diffLists(std::list<std::string>& base, const std::list<std::string>& toCompare);

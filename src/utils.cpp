@@ -1,9 +1,9 @@
 #include "utils.h"
 
-vector<Node*> parseFile(string fileName, string startingRule) {
+list<Node*> parseFile(string fileName, string startingRule) {
 	map<string,Node*> nodeMap;
 	pair<map<string,Node*>::iterator,bool> retInsert;
-	vector<Node*> graph;
+	list<Node*> graph;
 	Node* aNode;
 
 	ifstream input(fileName.c_str());
@@ -52,21 +52,17 @@ vector<Node*> parseFile(string fileName, string startingRule) {
 	}
 	list<Node*> toAnalize;
 	Node* n;
-	
 	toAnalize.push_back(itNodeMap->second);
-	nodeMap.clear();
-
 	while(!toAnalize.empty()){
 		n = toAnalize.front(); toAnalize.pop_front();
-		nodeMap.insert(pair<string,Node*>(n->getNodeName(), n));
-		graph.push_back(n);
+    graph.push_back(n);
     toAnalize.splice(toAnalize.begin(), n->getNeeds());
 	}
 
 	list<Node*> resolves;
   //For treating up to date rules
   toAnalize.clear();
-  for(vector<Node*>::iterator it = graph.begin(); it != graph.end(); it++)
+  for(list<Node*>::iterator it = graph.begin(); it != graph.end(); it++)
 		if((*it)->isReady() && checkIfDepUpToDate((*it)->getNodeName(), (*it)->getTerminals()))
       toAnalize.push_back(*it);
   
