@@ -22,6 +22,8 @@
 //Dependant of target system
 #ifdef UBUNTU
 const static char colNameLS[] = "8";
+const static char colDataNameLS[] = "7";
+const static char colDataDateLS[] = "6";
 #elif defined REDHAT
 const static char colNameLS[] = "9";
 #endif

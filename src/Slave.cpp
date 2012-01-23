@@ -36,29 +36,45 @@ void Slave::cleanUp(){
 	system(action.append(number).c_str());
 }
 
-std::list<std::string> Slave::getChangedFiles(){
-	std::list<std::string> fileList;
-	FILE* pipe = popen("ls -t1", "r");
-	if (!pipe)
-		return fileList;
-	
+std::map<std::string, std::string> Slave::getChangedFiles(){
+	string commandLS = "ls --time-style='+%H:%M:%S' -l | awk \'{print $";
+  commandLS.append(colDataNameLS).append("\" \"$").append(colDataDateLS).append("}\'");
+  FILE* pipe = popen(commandLS.c_str(), "r");
 	char buffer[Master::FILE_NAME_SIZE];
-	std::stringstream ss;
-	std::string output;
+	stringstream ss;
+	std::map<std::string, std::string> tempMap;
 	while(!feof(pipe)) {
-		if(fgets(buffer, Master::FILE_NAME_SIZE, pipe) != NULL)
+		if(fgets(buffer, Master::FILE_NAME_SIZE, pipe) != NULL) {
 			ss << buffer;
+		}
+	}
+	string key, value;
+	while (ss >> key) {
+		ss >> value; 
+		tempMap.insert(pair<string,string>(key,value));
 	}
 	pclose(pipe);
-	
-	while(ss >> output && output != FILE_CHECKPOINT)
-		fileList.push_back(output);
-	return fileList;
+  return tempMap; 
 }
 
 void Slave::sendFinished() {
-	std::list<std::string> changedFiles = getChangedFiles();
-	changedFiles.sort();
+	using namespace std;
+	map<string, string> mapChangedFiles = getChangedFiles();
+	map<string, string>::iterator ptFile;
+  	list<string> changedFiles;
+	
+	for(map<string, string>::iterator it = mapChangedFiles.begin(); it != mapChangedFiles.end(); it++) {
+		ptFile = mapFiles.find(it->first);
+		if(ptFile != mapFiles.end()) {
+			 if(ptFile->second.compare(it->second)) {
+				changedFiles.push_back(it->first);
+			}		
+		}
+		else {
+			changedFiles.push_back(it->first);
+		}
+	}
+
   char* fileNames = getFilesAndSizes(changedFiles);
 
 	//File List	
@@ -109,9 +125,7 @@ void Slave::receiveTask(const char command[]) {
 		writeFile(buffer, size, fileName);
 	}
 	
-	std::string touchCommand = "touch ";
-	touchCommand += FILE_CHECKPOINT;
-	system(touchCommand.c_str());
+	mapFiles = getChangedFiles();
 	//Execute command
 	system(command);
 }

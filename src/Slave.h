@@ -24,10 +24,11 @@ private:
   MPI_Status status;
   MPI_Request reqFinished;
   MPI_Request reqReceived;
+	std::map<std::string, std::string> mapFiles;
 
 	const static char* FILE_CHECKPOINT;
 	
-	std::list<std::string> getChangedFiles();
+	std::map<std::string, std::string> getChangedFiles();
 	void cleanUp();
 	void changeDir();
 		
