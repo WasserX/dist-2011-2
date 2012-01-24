@@ -139,6 +139,9 @@ void Master::sendTask(std::pair<Node*, std::list<std::string> > input, int targe
 	//Waits first part of answer async
 	MPI_Irecv(rcvBuffers.find(target)->second, FILE_NAME_SIZE, MPI_BYTE, target, 
 		SLAVE_FILE_NAME_TAG, MPI_COMM_WORLD, requests.find(target)->second);
+ #ifdef COUNT_MESSAGES
+  messageCounter++;
+  #endif
 }
 
 void Master::receiveFinished() {
@@ -166,6 +169,9 @@ void Master::receiveFinished() {
 				buffer = (char *)malloc(size);
 				MPI_Recv(buffer, size, MPI_BYTE, mapIt->first, FILE_SEND_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 				writeFile(buffer, size, fileName);
+				#if defined COUNT_MESSAGES || defined COUNT_FILE_MESSAGES
+    messageCounter++;
+    #endif
 			}
 			
 			//Updating Graph
