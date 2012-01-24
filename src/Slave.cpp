@@ -8,6 +8,8 @@
 
 #include "Slave.h"
 
+const char* Slave::FILE_CHECKPOINT = "___FILE_CHECKPOINT___";
+
 Slave::Slave(int rank) {
 	id = rank;
 	changeDir();
@@ -36,46 +38,28 @@ void Slave::cleanUp(){
 	system(action.append(number).c_str());
 }
 
-std::map<std::string, std::string> Slave::getChangedFiles(){
-	string commandLS = "ls --time-style='+%H:%M:%S' -l | awk \'{print $";
-  commandLS.append(colDataNameLS).append("\" \"$").append(colDataDateLS).append("}\'");
-  FILE* pipe = popen(commandLS.c_str(), "r");
-	char buffer[Master::FILE_NAME_SIZE];
-	stringstream ss;
-	std::map<std::string, std::string> tempMap;
-	while(!feof(pipe)) {
-		if(fgets(buffer, Master::FILE_NAME_SIZE, pipe) != NULL) {
-			ss << buffer;
-		}
-	}
-	string key, value;
-	while (ss >> key) {
-		ss >> value; 
-		tempMap.insert(pair<string,string>(key,value));
-	}
-	pclose(pipe);
-  return tempMap; 
+std::list<std::string> Slave::getChangedFiles(){
+  std::list<std::string> fileList;
+  FILE* pipe = popen("ls -t1", "r");
+  if (!pipe)
+    return fileList;
+  char buffer[Master::FILE_NAME_SIZE];
+  std::stringstream ss;
+  std::string output;
+  while(!feof(pipe))
+    if(fgets(buffer, Master::FILE_NAME_SIZE, pipe) != NULL)
+      ss << buffer;
+  pclose(pipe);
+  
+  while(ss >> output && output != FILE_CHECKPOINT)
+    fileList.push_back(output);
+  return fileList;
 }
 
 void Slave::sendFinished() {
 	using namespace std;
-	map<string, string> mapChangedFiles = getChangedFiles();
-	map<string, string>::iterator ptFile;
-  	list<string> changedFiles;
 	
-	for(map<string, string>::iterator it = mapChangedFiles.begin(); it != mapChangedFiles.end(); it++) {
-		ptFile = mapFiles.find(it->first);
-		if(ptFile != mapFiles.end()) {
-			 if(ptFile->second.compare(it->second)) {
-				changedFiles.push_back(it->first);
-			}		
-		}
-		else {
-			changedFiles.push_back(it->first);
-		}
-	}
-
-  char* fileNames = getFilesAndSizes(changedFiles);
+  char* fileNames = getFilesAndSizes(getChangedFiles());
 
 	//File List	
 	MPI_Send(fileNames, Master::FILE_NAME_SIZE, MPI_BYTE, Master::ID, Master::SLAVE_FILE_NAME_TAG, MPI_COMM_WORLD);
@@ -127,7 +111,8 @@ void Slave::receiveTask(const char command[]) {
 		writeFile(buffer, size, fileName);
 	}
 	
-	mapFiles = getChangedFiles();
+  std::string touchCommand = "touch ";
+  system(touchCommand.append(FILE_CHECKPOINT).c_str());
 	//Execute command
 	system(command);
 }

@@ -28,7 +28,7 @@ private:
 
 	const static char* FILE_CHECKPOINT;
 	
-	std::map<std::string, std::string> getChangedFiles();
+	std::list<std::string> getChangedFiles();
 	void cleanUp();
 	void changeDir();
 		
