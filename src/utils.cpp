@@ -111,7 +111,6 @@ pair<char*, unsigned long> readFile(std::string fileName) {
 	unsigned long fileLen;
 
 	//Open file
-  cout << "File Name: " << fileName << endl;
 	file = fopen(fileName.c_str(), "rb");
 	if (!file)
 	{
