@@ -5,8 +5,14 @@ Prerequisites:
 1. OpenMPI and libraries for compiling. In ubuntu:
 	sudo apt-get install openmpi-dev openmpi-bin
 
-2. If you are using RedHat/ archlinux or any other distro that has an ls with more parameters than normal, change TARGET in makefile to REDHAT
+2. If you are using RedHat/ archlinux or any other distro that has an ls with more columns than ubuntu, change TARGET in makefile to REDHAT
 
 Instructions:
 execute 'mpirun -np <n> distMake' in the folder where the Makefile is (filename is fixed)
 where n>2 is the number of process that will be created (one is needed to control the others)
+
+Switches:
+-DDEBUG --> Shows debug messages
+-DCOUNT_MESSAGES --> Prints the total quantity of messages sent by the Master to the slaves
+-DCOUNT_FILE_MESSAGES --> Prints the total quantity of files that the Master had to send to the slaves
+-DNO_HEURISTICS --> The next node to be sent is the first ready in line. Doesn't consider which is the best to send

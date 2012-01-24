@@ -111,6 +111,7 @@ pair<char*, unsigned long> readFile(std::string fileName) {
 	unsigned long fileLen;
 
 	//Open file
+  cout << "File Name: " << fileName << endl;
 	file = fopen(fileName.c_str(), "rb");
 	if (!file)
 	{
@@ -167,20 +168,19 @@ char* getFilesAndSizes(const std::list<std::string>& fileNames){
 
   stringstream ss;
   ss << getFormattedLS();
-  string output;
-	string filesToSend;
-  list<string>::const_iterator it = fileNames.begin();
-  while( ss >> output && it != fileNames.end()){
-    if(!output.compare(*it)){
-			filesToSend.append(" ").append(output + " ");
-			ss >> output;
-			filesToSend += output;
-      it++;
-    }else{
-      ss >> output;
-    }
-	}
-	return strcpy(files, filesToSend.c_str());
+  string output, size;
+	map<string,string>lsMap;
+  string filesToSend;
+  while( ss >> output >> size)
+    lsMap.insert(pair<string,string>(output,size));
+
+  map<string,string>::iterator itMap;
+  for(list<string>::const_iterator it = fileNames.begin(); it != fileNames.end(); it++){
+    itMap = lsMap.find(*it);
+    filesToSend.append(" ").append(itMap->first + " ").append(itMap->second);
+  }
+
+	return strcpy(files, filesToSend.substr(1,string::npos).c_str());
 }
 
 /*
