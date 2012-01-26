@@ -23,9 +23,11 @@ Slave::~Slave() {
 void Slave::changeDir(){
 	char number[10];
 	sprintf(number,"%d",id);
-	string action = "mkdir -p ";
+	string action = "cd /tmp && mkdir -p ";
 	system(action.append(number).c_str());
-	chdir(number);
+	action = "/tmp/";
+	action.append(number);
+	chdir(action.c_str());
 }
 
 void Slave::cleanUp(){

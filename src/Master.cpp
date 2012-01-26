@@ -255,7 +255,7 @@ std::pair<Node*, std::list<std::string> > Master::nextNode(int id){
   #ifdef NO_HEURISTICS
 		other = readyToCompute.front()->getTerminals();
 		other.sort();
-		other = diffLists(other, *inProcess);
+		//other = diffLists(other, *inProcess);
     return pair<Node*, list<string> >(readyToCompute.front(), other);
   #endif
 
