@@ -82,7 +82,7 @@ list<Node*> parseFile(string fileName, string startingRule) {
 }
 
 string& trim(string& str) {
-	str.erase(str.find_last_not_of(" \n\r\t")+1);
+	str.erase(str.find_last_not_of(" \n\r\t*")+1);
 	return str.erase(0,str.find_first_not_of(" \n\r\t"));
 }
 
@@ -171,15 +171,19 @@ char* getFilesAndSizes(const std::list<std::string>& fileNames){
 	map<string,string>lsMap;
   string filesToSend;
   while( ss >> output >> size)
-    lsMap.insert(pair<string,string>(output,size));
+    lsMap.insert(pair<string,string>(trim(output),trim(size)));
 
   map<string,string>::iterator itMap;
   for(list<string>::const_iterator it = fileNames.begin(); it != fileNames.end(); it++){
     itMap = lsMap.find(*it);
-    filesToSend.append(" ").append(itMap->first + " ").append(itMap->second);
+    if (itMap != lsMap.end())
+      filesToSend.append(" ").append(itMap->first + " ").append(itMap->second);
   }
-
-	return strcpy(files, filesToSend.substr(1,string::npos).c_str());
+  
+  if(filesToSend.size() > 1)
+	  return strcpy(files, filesToSend.substr(1,string::npos).c_str());
+  else
+    return files;
 }
 
 /*

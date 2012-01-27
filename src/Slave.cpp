@@ -53,7 +53,7 @@ std::map<std::string, std::string> Slave::getChangedFiles(){
 	string key, value;
 	while (ss >> key) {
 		ss >> value; 
-		tempMap.insert(pair<string,string>(key,value));
+		tempMap.insert(pair<string,string>(trim(key),trim(value)));
 	}
 	pclose(pipe);
   return tempMap; 
